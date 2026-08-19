@@ -1,0 +1,83 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: hyva-postgres-dev
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hyva_dev
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hyva-network
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: hyva-rabbitmq-dev
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: hyva
+      RABBITMQ_DEFAULT_PASS: hyva
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hyva-network
+
+  backend:
+    image: node:26-alpine
+    container_name: hyva-backend-dev
+    working_dir: /workspace
+    command: sh -c "npm install -g pnpm@10.5.2 && pnpm --filter backend dev"
+    volumes:
+      - .:/workspace
+    ports:
+      - "127.0.0.1:8090:8080"
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/hyva_dev
+      PORT: "8080"
+      JWT_SECRET: dev-only-secret-change-me-32-plus-characters
+      ACCESS_TOKEN_TTL_MS: "900000"
+      REFRESH_TOKEN_TTL_MS: "2592000000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - hyva-network
+
+  frontend:
+    image: node:26-alpine
+    container_name: hyva-frontend-dev
+    working_dir: /workspace
+    command: sh -c "npm install -g pnpm@10.5.2 && pnpm --filter frontend dev"
+    volumes:
+      - .:/workspace
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8090
+      INTERNAL_API_URL: http://backend:8080
+    depends_on:
+      - backend
+    networks:
+      - hyva-network
+
+volumes:
+  postgres-data-dev:
+
+networks:
+  hyva-network:
+    driver: bridge

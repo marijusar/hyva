@@ -1,0 +1,13 @@
+# deps (pnpm workspace hoisting puts some here even though each app also
+# has its own node_modules/ + .gitignore)
+node_modules/
+.pnpm-store/
+
+# env
+.env
+.env.local
+.env.production
+
+# misc
+.DS_Store
+*.log
