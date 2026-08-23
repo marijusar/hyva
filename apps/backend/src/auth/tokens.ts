@@ -1,5 +1,5 @@
 import { jwtVerify, SignJWT } from "jose";
-import { env } from "../env.ts";
+import { authEnv } from "./env.ts";
 
 export interface TokenPayload {
   userId: string;
@@ -9,18 +9,18 @@ export interface TokenPayload {
 }
 
 export class Tokens {
-  private static readonly secret = new TextEncoder().encode(env.JWT_SECRET);
+  private static readonly secret = new TextEncoder().encode(authEnv.JWT_SECRET);
 
   static createAccessToken(userId: string, role: string): Promise<string> {
-    return Tokens.createToken(userId, env.ACCESS_TOKEN_TTL_MS, role);
+    return Tokens.createToken(userId, authEnv.ACCESS_TOKEN_TTL_MS, role);
   }
 
   static createRefreshToken(userId: string): Promise<string> {
-    return Tokens.createToken(userId, env.REFRESH_TOKEN_TTL_MS);
+    return Tokens.createToken(userId, authEnv.REFRESH_TOKEN_TTL_MS);
   }
 
   static refreshTokenExpiresAt(): Date {
-    return new Date(Date.now() + env.REFRESH_TOKEN_TTL_MS);
+    return new Date(Date.now() + authEnv.REFRESH_TOKEN_TTL_MS);
   }
 
   static async verifyToken(token: string): Promise<TokenPayload | null> {

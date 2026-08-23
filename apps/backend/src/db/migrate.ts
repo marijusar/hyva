@@ -1,10 +1,10 @@
 import { DbClient } from "./client.ts";
 import { MigrationRunner } from "./migrator.ts";
-import { env } from "../env.ts";
+import { dbEnv } from "./env.ts";
 
 export class MigrateCommand {
   static async run(): Promise<void> {
-    const db = DbClient.create(env.DATABASE_URL);
+    const db = DbClient.create(dbEnv.DATABASE_URL);
     const migrator = MigrationRunner.create(db);
 
     const { error, results } = await migrator.migrateToLatest();

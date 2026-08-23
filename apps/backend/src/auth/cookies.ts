@@ -1,17 +1,17 @@
 import type { Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
-import { env } from "../env.ts";
+import { authEnv } from "./env.ts";
 
 export class AuthCookies {
   private static readonly ACCESS_COOKIE = "access_token";
   private static readonly REFRESH_COOKIE = "refresh_token";
 
   static setAccessToken(c: Context, token: string): void {
-    setCookie(c, AuthCookies.ACCESS_COOKIE, token, AuthCookies.options(env.ACCESS_TOKEN_TTL_MS));
+    setCookie(c, AuthCookies.ACCESS_COOKIE, token, AuthCookies.options(authEnv.ACCESS_TOKEN_TTL_MS));
   }
 
   static setRefreshToken(c: Context, token: string): void {
-    setCookie(c, AuthCookies.REFRESH_COOKIE, token, AuthCookies.options(env.REFRESH_TOKEN_TTL_MS));
+    setCookie(c, AuthCookies.REFRESH_COOKIE, token, AuthCookies.options(authEnv.REFRESH_TOKEN_TTL_MS));
   }
 
   static getAccessToken(c: Context): string | undefined {

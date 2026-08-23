@@ -42,13 +42,23 @@ export class AuthMiddleware {
     };
   }
 
-  private static async refreshAccessToken(c: Context<AppEnv>): Promise<RefreshResult | null> {
+  private static async refreshAccessToken(
+    c: Context<AppEnv>,
+  ): Promise<RefreshResult | null> {
     const refreshToken = AuthCookies.getRefreshToken(c);
     if (!refreshToken) return null;
 
     const db = c.get("db");
-    const session = await UserRepository.getSessionByRefreshToken(db, refreshToken);
-    if (!session || session.revoked_at || new Date(session.expires_at) < new Date()) return null;
+    const session = await UserRepository.getSessionByRefreshToken(
+      db,
+      refreshToken,
+    );
+    if (
+      !session ||
+      session.revoked_at ||
+      new Date(session.expires_at) < new Date()
+    )
+      return null;
 
     const payload = await Tokens.verifyToken(refreshToken);
     if (!payload) return null;

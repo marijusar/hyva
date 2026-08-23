@@ -7,6 +7,31 @@ export interface StoresTable {
   created_at: Generated<string>;
 }
 
+export interface StoreCrawlsTable {
+  id: Generated<string>;
+  store_id: string;
+  status: string;
+  created_at: Generated<string>;
+}
+
+export interface StoreMetadataTable {
+  id: Generated<string>;
+  store_id: string;
+  platform: string | null;
+  homepage_text: string | null;
+  created_at: Generated<string>;
+}
+
+export interface StoreTechnologiesTable {
+  id: Generated<string>;
+  store_id: string;
+  name: string;
+  category: string | null;
+  deleted_at: string | null;
+  created_at: Generated<string>;
+  updated_at: Generated<string>;
+}
+
 export interface UsersTable {
   id: Generated<string>;
   email: string;
@@ -30,6 +55,9 @@ export interface UserSessionsTable {
 
 export interface Database {
   stores: StoresTable;
+  store_crawls: StoreCrawlsTable;
+  store_metadata: StoreMetadataTable;
+  store_technologies: StoreTechnologiesTable;
   users: UsersTable;
   user_sessions: UserSessionsTable;
 }

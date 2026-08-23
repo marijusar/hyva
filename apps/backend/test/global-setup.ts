@@ -1,4 +1,5 @@
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from "@testcontainers/postgresql";
+import { RabbitMQContainer, type StartedRabbitMQContainer } from "@testcontainers/rabbitmq";
 import type { ProvidedContext } from "vitest";
 import { DbClient } from "#src/db/client";
 import { MigrationRunner } from "#src/db/migrator";
@@ -13,26 +14,36 @@ interface SetupContext {
 // test/utils/database.ts) — cloning a template is a `CREATE DATABASE ...
 // TEMPLATE` and is orders of magnitude faster than re-running migrations
 // per test. https://gajus.com/blog/setting-up-postgre-sql-for-running-integration-tests
+//
+// Also starts a single RabbitMQ container for the whole run. Unlike
+// Postgres, there's no per-test template-clone equivalent — queue tests
+// share the one broker and are responsible for purging their own queues
+// between tests (see test/homepage-crawl-queue.test.ts).
 class GlobalTestSetup {
-  private static container: StartedPostgreSqlContainer | undefined;
+  private static postgresContainer: StartedPostgreSqlContainer | undefined;
+  private static rabbitmqContainer: StartedRabbitMQContainer | undefined;
 
   static async setup({ provide }: SetupContext): Promise<void> {
-    GlobalTestSetup.container = await new PostgreSqlContainer("postgres:18-alpine").start();
+    [GlobalTestSetup.postgresContainer, GlobalTestSetup.rabbitmqContainer] = await Promise.all([
+      new PostgreSqlContainer("postgres:18-alpine").start(),
+      new RabbitMQContainer("rabbitmq:4-management-alpine").start(),
+    ]);
 
-    const templateDb = DbClient.create(GlobalTestSetup.container.getConnectionUri());
+    const templateDb = DbClient.create(GlobalTestSetup.postgresContainer.getConnectionUri());
     const { error } = await MigrationRunner.create(templateDb).migrateToLatest();
     await templateDb.destroy();
     if (error) throw error;
 
-    provide("TEST_PG_HOST", GlobalTestSetup.container.getHost());
-    provide("TEST_PG_PORT", String(GlobalTestSetup.container.getPort()));
-    provide("TEST_PG_USER", GlobalTestSetup.container.getUsername());
-    provide("TEST_PG_PASSWORD", GlobalTestSetup.container.getPassword());
-    provide("TEST_PG_TEMPLATE_DB", GlobalTestSetup.container.getDatabase());
+    provide("TEST_PG_HOST", GlobalTestSetup.postgresContainer.getHost());
+    provide("TEST_PG_PORT", String(GlobalTestSetup.postgresContainer.getPort()));
+    provide("TEST_PG_USER", GlobalTestSetup.postgresContainer.getUsername());
+    provide("TEST_PG_PASSWORD", GlobalTestSetup.postgresContainer.getPassword());
+    provide("TEST_PG_TEMPLATE_DB", GlobalTestSetup.postgresContainer.getDatabase());
+    provide("TEST_RABBITMQ_URI", GlobalTestSetup.rabbitmqContainer.getAmqpUrl());
   }
 
   static async teardown(): Promise<void> {
-    await GlobalTestSetup.container?.stop();
+    await Promise.all([GlobalTestSetup.postgresContainer?.stop(), GlobalTestSetup.rabbitmqContainer?.stop()]);
   }
 }
 

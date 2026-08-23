@@ -1,15 +1,18 @@
 import { serve } from "@hono/node-server";
 import { AppFactory } from "./app.ts";
 import { DbClient } from "./db/client.ts";
-import { env } from "./env.ts";
+import { dbEnv } from "./db/env.ts";
+import { serverEnv } from "./server-env.ts";
+import { LoggerFactory } from "./logging/logger.ts";
 
 export class Server {
   static start(): void {
-    const db = DbClient.create(env.DATABASE_URL);
-    const app = AppFactory.create(db);
+    const logger = LoggerFactory.create("backend");
+    const db = DbClient.create(dbEnv.DATABASE_URL);
+    const app = AppFactory.create(db, logger);
 
-    serve({ fetch: app.fetch, port: env.PORT }, (info) => {
-      console.log(`backend listening on http://localhost:${info.port}`);
+    serve({ fetch: app.fetch, port: serverEnv.PORT }, (info) => {
+      logger.info({ port: info.port }, "backend listening");
     });
   }
 }

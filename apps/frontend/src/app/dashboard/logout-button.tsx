@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Api } from "@/lib/api";
+import { AuthClient } from "@/lib/http/auth-client";
 
 export function LogoutButton() {
   const router = useRouter();
@@ -11,7 +11,7 @@ export function LogoutButton() {
 
   async function handleLogout() {
     setLoading(true);
-    await Api.post("/auth/logout", {});
+    await AuthClient.logout();
     router.push("/login");
   }
 

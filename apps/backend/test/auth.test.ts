@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AppFactory } from "#src/app";
+import { LoggerFactory } from "#src/logging/logger";
 import { TestDatabase } from "./utils/database.ts";
 
 function extractCookie(res: Response, name: string): string | undefined {
@@ -20,7 +21,7 @@ describe("auth flow", () => {
   });
 
   it("registers, rejects duplicate email, logs in, reads /auth/me, and logs out", async () => {
-    const app = AppFactory.create(testDb.db);
+    const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
 
     const registerRes = await app.request("/auth/register", {
       method: "POST",
@@ -76,7 +77,7 @@ describe("auth flow", () => {
   });
 
   it("issues a fresh access token from a valid refresh token when the access token is missing", async () => {
-    const app = AppFactory.create(testDb.db);
+    const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
 
     const loginRes = await app.request("/auth/login", {
       method: "POST",

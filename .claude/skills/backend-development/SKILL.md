@@ -12,12 +12,23 @@ Full context: [docs/ARCHITECTURE.md](../../../docs/ARCHITECTURE.md).
 - **Hono** on Node (`@hono/node-server`), TS — separate service from the
   Next.js frontend, not API routes inside it. REST, not tRPC (public API
   optionality kept open).
-- **Native TypeScript execution** — no ts-node/tsx. Node runs `.ts` files
-  directly (`node --watch src/index.ts`). Relative imports must use literal
-  `.ts` extensions (`./app.ts`, not `./app.js`) — Node's native loader does
-  not remap `.js` specifiers to `.ts` files the way `tsc`/bundlers do.
-  `tsconfig.json` sets `rewriteRelativeImportExtensions: true` so `tsc`
-  build output still gets correct `.js` imports.
+- **Compiled via `tsc`, not Node's native strip-only execution** — Node's
+  built-in TypeScript support (`--experimental-strip-types`) only erases
+  type annotations; it can't transform syntax that generates real JS
+  (constructor parameter properties, enums, namespaces with runtime code —
+  see `modules/store/store.ts` for a parameter-property example). `tsc`
+  (TypeScript 7, the Go-native compiler) compiles `src/` to `dist/` instead,
+  and every process runs the compiled output. Still not ts-node/tsx — no
+  runtime-transpilation dependency, just a real compile step instead of
+  type-erasure-only. `pnpm dev` runs a background `tsc --watch` alongside
+  `node --watch dist/index.js`, so editing a source file still
+  recompiles+restarts automatically, same as before. One-shot scripts
+  (`db:migrate`, `sync:technologies`, future crawler scripts) build once
+  then run the compiled output: `tsc -p tsconfig.build.json && node
+  dist/....js`. Relative imports still use literal `.ts` extensions in
+  source (`./app.ts`, not `./app.js`); `tsconfig.json`'s
+  `rewriteRelativeImportExtensions: true` rewrites them to `.js` in the
+  compiled `dist/` output.
 - **Cross-directory imports use the `#` subpath alias**, not deep relative
   paths — `#src/db/client` (bare, no extension) instead of
   `../../src/db/client.ts`. Defined in `package.json`'s `imports` field:

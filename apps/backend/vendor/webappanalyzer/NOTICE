@@ -1,0 +1,10 @@
+This directory vendors fingerprint data from enthec/webappanalyzer
+(https://github.com/enthec/webappanalyzer), pinned at commit 1b9eee8154c0f01e7888c5242cf6fbbc4a3fcea6.
+
+The data (technologies/*.json, categories.json, groups.json) is GPLv3-licensed
+— see LICENSE in this directory. Only the data is vendored; the matching
+engine that reads it (apps/backend/src/crawler/technology-matcher.ts) is
+original code, not derived from webappanalyzer's own (unrelated) engine.
+
+Re-run `pnpm --filter backend sync:technologies` to pull a newer pinned
+commit deliberately — this is never fetched automatically at build/run time.

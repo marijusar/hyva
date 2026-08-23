@@ -2,19 +2,22 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { Kysely } from "kysely";
 import type { Database } from "./db/types.ts";
+import type { Logger } from "./logging/logger.ts";
 import { UserRoutes } from "./modules/user/routes.ts";
 
 export type AppEnv = {
   Variables: {
     db: Kysely<Database>;
+    logger: Logger;
     userId?: string;
     userRole?: string;
   };
 };
 
 export class AppFactory {
-  static create(db: Kysely<Database>) {
+  static create(db: Kysely<Database>, logger: Logger) {
     const app = new Hono<AppEnv>();
+    const httpLogger = logger.child({ module: "[HTTP]" });
 
     app.use(
       "*",
@@ -26,7 +29,17 @@ export class AppFactory {
 
     app.use("*", async (c, next) => {
       c.set("db", db);
+      c.set("logger", httpLogger);
       await next();
+    });
+
+    app.use("*", async (c, next) => {
+      const startedAt = Date.now();
+      await next();
+      httpLogger.info(
+        { method: c.req.method, path: c.req.path, status: c.res.status, durationMs: Date.now() - startedAt },
+        "request handled",
+      );
     });
 
     app.get("/health", (c) => c.json({ status: "ok" }));

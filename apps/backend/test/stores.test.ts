@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AppFactory } from "#src/app";
+import { LoggerFactory } from "#src/logging/logger";
 import { TestDatabase } from "./utils/database.ts";
 
 describe("GET /stores", () => {
@@ -14,7 +15,7 @@ describe("GET /stores", () => {
   });
 
   it("returns an empty list against a freshly cloned template database", async () => {
-    const app = AppFactory.create(testDb.db);
+    const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
 
     const res = await app.request("/stores");
 
@@ -28,7 +29,7 @@ describe("GET /stores", () => {
       .values({ domain: "example.myshopify.com", name: "Example" })
       .execute();
 
-    const app = AppFactory.create(testDb.db);
+    const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
     const res = await app.request("/stores");
     const body = (await res.json()) as { domain: string }[];
 
