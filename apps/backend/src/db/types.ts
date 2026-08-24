@@ -32,6 +32,13 @@ export interface StoreTechnologiesTable {
   updated_at: Generated<string>;
 }
 
+export interface StoreSubscriptionsTable {
+  id: Generated<string>;
+  user_id: string;
+  store_id: string;
+  created_at: Generated<string>;
+}
+
 export interface UsersTable {
   id: Generated<string>;
   email: string;
@@ -58,6 +65,7 @@ export interface Database {
   store_crawls: StoreCrawlsTable;
   store_metadata: StoreMetadataTable;
   store_technologies: StoreTechnologiesTable;
+  store_subscriptions: StoreSubscriptionsTable;
   users: UsersTable;
   user_sessions: UserSessionsTable;
 }

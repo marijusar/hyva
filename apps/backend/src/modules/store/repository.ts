@@ -1,11 +1,14 @@
 import type { Kysely } from "kysely";
+import { z } from "zod";
 import type { Database } from "../../db/types.ts";
 import { Store } from "./store.ts";
 
-export interface NewStore {
-  domain: string;
-  name: string | null;
-}
+export const newStoreSchema = z.object({
+  domain: z.string(),
+  name: z.string().nullable(),
+});
+
+export type NewStore = z.infer<typeof newStoreSchema>;
 
 export class StoreRepository {
   static async create(db: Kysely<Database>, store: NewStore): Promise<Store> {
@@ -26,6 +29,16 @@ export class StoreRepository {
   static async getByDomain(db: Kysely<Database>, domain: string): Promise<Store | undefined> {
     const row = await db.selectFrom("stores").selectAll().where("domain", "=", domain).executeTakeFirst();
     return row ? Store.fromRow(row) : undefined;
+  }
+
+  // Subscribing to a domain we haven't seen yet still creates the store row
+  // — it just has no crawl history until the next orchestrator sweep picks
+  // it up (getPendingForCrawl finds it via "no store_crawls row yet").
+  static async getOrCreateByDomain(db: Kysely<Database>, domain: string): Promise<Store> {
+    const existing = await StoreRepository.getByDomain(db, domain);
+    if (existing) return existing;
+
+    return StoreRepository.create(db, { domain, name: null });
   }
 
   // Bulk import — skips domains that already exist rather than overwriting

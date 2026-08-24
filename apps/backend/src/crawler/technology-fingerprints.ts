@@ -1,19 +1,25 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { z } from "zod";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const vendorDir = path.join(__dirname, "..", "..", "vendor", "webappanalyzer");
 
-export interface RawTechnology {
-  cats?: number[];
-  html?: string[];
-  scriptSrc?: string[];
-}
+export const rawTechnologySchema = z.object({
+  cats: z.array(z.number()).optional(),
+  html: z.array(z.string()).optional(),
+  scriptSrc: z.array(z.string()).optional(),
+});
 
-interface RawCategory {
-  name: string;
-}
+export type RawTechnology = z.infer<typeof rawTechnologySchema>;
+
+const rawCategorySchema = z.object({
+  name: z.string(),
+});
+
+const technologiesFileSchema = z.record(z.string(), rawTechnologySchema);
+const categoriesFileSchema = z.record(z.string(), rawCategorySchema);
 
 // One instance per worker process. Loads the vendored fingerprint data
 // (vendor/webappanalyzer/, see NOTICE there for provenance/license) from
@@ -44,16 +50,18 @@ export class TechnologyFingerprints {
   }
 
   private async loadFromDisk(): Promise<void> {
-    const categoriesRaw = JSON.parse(await fs.readFile(path.join(vendorDir, "categories.json"), "utf-8"));
-    this.categories = new Map(
-      Object.entries(categoriesRaw as Record<string, RawCategory>).map(([id, cat]) => [Number(id), cat.name]),
+    const categoriesRaw = categoriesFileSchema.parse(
+      JSON.parse(await fs.readFile(path.join(vendorDir, "categories.json"), "utf-8")),
     );
+    this.categories = new Map(Object.entries(categoriesRaw).map(([id, cat]) => [Number(id), cat.name]));
 
     const files = await fs.readdir(path.join(vendorDir, "technologies"));
     const technologies = new Map<string, RawTechnology>();
     for (const file of files) {
-      const raw = JSON.parse(await fs.readFile(path.join(vendorDir, "technologies", file), "utf-8"));
-      for (const [name, tech] of Object.entries(raw as Record<string, RawTechnology>)) {
+      const raw = technologiesFileSchema.parse(
+        JSON.parse(await fs.readFile(path.join(vendorDir, "technologies", file), "utf-8")),
+      );
+      for (const [name, tech] of Object.entries(raw)) {
         technologies.set(name, tech);
       }
     }

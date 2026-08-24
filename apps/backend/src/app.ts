@@ -4,6 +4,7 @@ import type { Kysely } from "kysely";
 import type { Database } from "./db/types.ts";
 import type { Logger } from "./logging/logger.ts";
 import { UserRoutes } from "./modules/user/routes.ts";
+import { StoreRoutes } from "./modules/store/routes.ts";
 
 export type AppEnv = {
   Variables: {
@@ -44,12 +45,8 @@ export class AppFactory {
 
     app.get("/health", (c) => c.json({ status: "ok" }));
 
-    app.get("/stores", async (c) => {
-      const stores = await c.get("db").selectFrom("stores").selectAll().execute();
-      return c.json(stores);
-    });
-
     UserRoutes.mount(app);
+    StoreRoutes.mount(app);
 
     return app;
   }

@@ -1,12 +1,15 @@
 import { jwtVerify, SignJWT } from "jose";
+import { z } from "zod";
 import { authEnv } from "./env.ts";
 
-export interface TokenPayload {
-  userId: string;
-  role: string | null;
-  issuedAt: Date;
-  expiresAt: Date;
-}
+export const tokenPayloadSchema = z.object({
+  userId: z.string(),
+  role: z.string().nullable(),
+  issuedAt: z.date(),
+  expiresAt: z.date(),
+});
+
+export type TokenPayload = z.infer<typeof tokenPayloadSchema>;
 
 export class Tokens {
   private static readonly secret = new TextEncoder().encode(authEnv.JWT_SECRET);
@@ -26,13 +29,15 @@ export class Tokens {
   static async verifyToken(token: string): Promise<TokenPayload | null> {
     try {
       const { payload } = await jwtVerify(token, Tokens.secret);
-      if (typeof payload.sub !== "string" || !payload.iat || !payload.exp) return null;
-      return {
+      if (!payload.iat || !payload.exp) return null;
+
+      const parsed = tokenPayloadSchema.safeParse({
         userId: payload.sub,
         role: typeof payload.role === "string" ? payload.role : null,
         issuedAt: new Date(payload.iat * 1000),
         expiresAt: new Date(payload.exp * 1000),
-      };
+      });
+      return parsed.success ? parsed.data : null;
     } catch {
       return null;
     }

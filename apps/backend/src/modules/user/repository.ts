@@ -1,17 +1,22 @@
 import type { Kysely } from "kysely";
+import { z } from "zod";
 import type { Database } from "../../db/types.ts";
 
-export interface NewUser {
-  email: string;
-  passwordHash: string;
-  name: string | null;
-}
+export const newUserSchema = z.object({
+  email: z.email(),
+  passwordHash: z.string(),
+  name: z.string().nullable(),
+});
 
-export interface NewSession {
-  userId: string;
-  refreshToken: string;
-  expiresAt: Date;
-}
+export type NewUser = z.infer<typeof newUserSchema>;
+
+export const newSessionSchema = z.object({
+  userId: z.uuid(),
+  refreshToken: z.string(),
+  expiresAt: z.date(),
+});
+
+export type NewSession = z.infer<typeof newSessionSchema>;
 
 export class UserRepository {
   static create(db: Kysely<Database>, user: NewUser) {
