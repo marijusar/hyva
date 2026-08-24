@@ -13,6 +13,7 @@
     "db:migrate": "tsc -p tsconfig.build.json && node --env-file-if-exists=.env dist/db/migrate.js",
     "sync:technologies": "tsc -p tsconfig.build.json && node --env-file-if-exists=.env dist/scripts/sync-technologies.js",
     "worker:homepage": "tsc -p tsconfig.build.json && (tsc -p tsconfig.build.json --watch --preserveWatchOutput &) && node --watch --env-file-if-exists=.env dist/workers/homepage-worker.js",
+    "crawl:orchestrate": "tsc -p tsconfig.build.json && node --env-file-if-exists=.env dist/scripts/orchestrate-crawl.js",
     "test": "vitest run"
   },
   "dependencies": {

@@ -2,12 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AppFactory } from "#src/app";
 import { LoggerFactory } from "#src/logging/logger";
 import { TestDatabase } from "./utils/database.ts";
-
-function extractCookie(res: Response, name: string): string | undefined {
-  const cookies = res.headers.getSetCookie();
-  const match = cookies.find((cookie) => cookie.startsWith(`${name}=`));
-  return match?.split(";")[0];
-}
+import { extractCookie } from "./utils/auth.ts";
 
 describe("auth flow", () => {
   const testDb = new TestDatabase();
