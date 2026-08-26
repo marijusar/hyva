@@ -1,6 +1,6 @@
 import type { Hono } from "hono";
-import type { AppEnv } from "../../app.ts";
-import { AuthMiddleware } from "../../auth/middleware.ts";
+import type { AppEnv } from "@/app";
+import { AuthMiddleware } from "@/auth/middleware";
 import { StoreHandlers } from "./handlers.ts";
 
 export class StoreRoutes {
@@ -8,5 +8,6 @@ export class StoreRoutes {
     app.post("/subscriptions", AuthMiddleware.requireAuth(), StoreHandlers.subscribe);
     app.delete("/subscriptions/:storeId", AuthMiddleware.requireAuth(), StoreHandlers.unsubscribe);
     app.get("/subscriptions", AuthMiddleware.requireAuth(), StoreHandlers.listSubscriptions);
+    app.get("/subscriptions/:storeId", AuthMiddleware.requireAuth(), StoreHandlers.getSubscription);
   }
 }

@@ -14,17 +14,19 @@ const subscriptionSchema = z.object({
 
 export class StoreSubscriptionsHttpResponse {
   static from(stores: SubscribedStore[]) {
-    return stores.map((store) =>
-      subscriptionSchema.parse({
-        id: store.id,
-        domain: store.domain,
-        name: store.name,
-        last_crawl_status: store.lastCrawlStatus,
-        last_crawled_at: store.lastCrawledAt?.toISOString(),
-        platform: store.platform,
-        homepage_text: store.homepageText,
-        technologies: store.technologies,
-      }),
-    );
+    return stores.map((store) => StoreSubscriptionsHttpResponse.fromOne(store));
+  }
+
+  static fromOne(store: SubscribedStore) {
+    return subscriptionSchema.parse({
+      id: store.id,
+      domain: store.domain,
+      name: store.name,
+      last_crawl_status: store.lastCrawlStatus,
+      last_crawled_at: store.lastCrawledAt?.toISOString(),
+      platform: store.platform,
+      homepage_text: store.homepageText,
+      technologies: store.technologies,
+    });
   }
 }

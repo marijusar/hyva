@@ -20,7 +20,7 @@ export async function register(
   if (!registerRes.ok) {
     return ServerActionResponse.create({
       data: null,
-      error: registerRes.data?.error ?? "Registration failed",
+      error: registerRes.error ?? "Registration failed",
       status: ServerActionStatuses.error,
     });
   }

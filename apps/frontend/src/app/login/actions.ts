@@ -21,7 +21,7 @@ export async function login(
   if (!res.ok) {
     return ServerActionResponse.create({
       data: null,
-      error: res.data?.error ?? "Login failed",
+      error: res.error ?? "Login failed",
       status: ServerActionStatuses.error,
     });
   }

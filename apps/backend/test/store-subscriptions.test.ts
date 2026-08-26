@@ -117,4 +117,50 @@ describe("store subscriptions", () => {
     const bListRes = await app.request("/subscriptions", { headers: { cookie: cookieB } });
     expect(await bListRes.json()).toEqual([]);
   });
+
+  it("returns a single subscribed store's detail", async () => {
+    const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
+    const cookie = await registerAndLogin(app, "detail@hyva.dev");
+
+    const store = await StoreRepository.create(testDb.db, { domain: "detail.myshopify.com", name: null });
+    await StoreCrawlRepository.record(testDb.db, store.id, "active");
+    await StoreMetadataRepository.record(testDb.db, store.id, "shopify", "A detailed store");
+    await StoreTechnologyRepository.record(testDb.db, store.id, [{ name: "Shopify", category: "Ecommerce" }]);
+
+    await app.request("/subscriptions", {
+      method: "POST",
+      headers: { "content-type": "application/json", cookie },
+      body: JSON.stringify({ domain: "detail.myshopify.com" }),
+    });
+
+    const detailRes = await app.request(`/subscriptions/${store.id}`, { headers: { cookie } });
+    expect(detailRes.status).toBe(200);
+    const detail = await detailRes.json();
+    expect(detail.domain).toBe("detail.myshopify.com");
+    expect(detail.last_crawl_status).toBe("active");
+    expect(detail.platform).toBe("shopify");
+    expect(detail.homepage_text).toBe("A detailed store");
+    expect(detail.technologies).toEqual([{ name: "Shopify", category: "Ecommerce" }]);
+  });
+
+  it("404s on detail for a store the user isn't subscribed to", async () => {
+    const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
+    const cookieA = await registerAndLogin(app, "detail-a@hyva.dev");
+    const cookieB = await registerAndLogin(app, "detail-b@hyva.dev");
+
+    const subscribeRes = await app.request("/subscriptions", {
+      method: "POST",
+      headers: { "content-type": "application/json", cookie: cookieA },
+      body: JSON.stringify({ domain: "only-a-detail.myshopify.com" }),
+    });
+    const { id: storeId } = await subscribeRes.json();
+
+    const detailRes = await app.request(`/subscriptions/${storeId}`, { headers: { cookie: cookieB } });
+    expect(detailRes.status).toBe(404);
+  });
+
+  it("requires auth for detail", async () => {
+    const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
+    expect((await app.request("/subscriptions/some-id")).status).toBe(401);
+  });
 });

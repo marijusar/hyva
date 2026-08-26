@@ -1,6 +1,6 @@
 import type { Kysely } from "kysely";
 import { z } from "zod";
-import type { Database } from "../../db/types.ts";
+import type { Database } from "@/db/types";
 import { StoreSubscriptionRepository } from "./subscription-repository.ts";
 import { StoreCrawlRepository } from "./crawl-repository.ts";
 import { StoreMetadataRepository } from "./metadata-repository.ts";
@@ -27,6 +27,12 @@ export class SubscriptionView {
   static async forUser(db: Kysely<Database>, userId: string): Promise<SubscribedStore[]> {
     const stores = await StoreSubscriptionRepository.getSubscribedStores(db, userId);
     return Promise.all(stores.map((store) => SubscriptionView.build(db, store)));
+  }
+
+  static async forUserStore(db: Kysely<Database>, userId: string, storeId: string): Promise<SubscribedStore | undefined> {
+    const store = await StoreSubscriptionRepository.getSubscribedStore(db, userId, storeId);
+    if (!store) return undefined;
+    return SubscriptionView.build(db, store);
   }
 
   private static async build(db: Kysely<Database>, store: Store): Promise<SubscribedStore> {

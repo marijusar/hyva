@@ -1,5 +1,5 @@
 import type { Kysely } from "kysely";
-import type { Database } from "../../db/types.ts";
+import type { Database } from "@/db/types";
 import { Store } from "./store.ts";
 import { StoreSubscription } from "./store-subscription.ts";
 
@@ -43,5 +43,19 @@ export class StoreSubscriptionRepository {
       .execute();
 
     return rows.map((row) => Store.fromRow(row));
+  }
+
+  // Ownership-scoped single lookup — undefined if the store doesn't exist
+  // or the user isn't subscribed to it, so callers can 404 either way.
+  static async getSubscribedStore(db: Kysely<Database>, userId: string, storeId: string): Promise<Store | undefined> {
+    const row = await db
+      .selectFrom("store_subscriptions")
+      .innerJoin("stores", "stores.id", "store_subscriptions.store_id")
+      .selectAll("stores")
+      .where("store_subscriptions.user_id", "=", userId)
+      .where("store_subscriptions.store_id", "=", storeId)
+      .executeTakeFirst();
+
+    return row ? Store.fromRow(row) : undefined;
   }
 }

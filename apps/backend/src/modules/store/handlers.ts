@@ -1,5 +1,5 @@
 import type { Context } from "hono";
-import type { AppEnv } from "../../app.ts";
+import type { AppEnv } from "@/app";
 import { StoreRepository } from "./repository.ts";
 import { StoreSubscriptionRepository } from "./subscription-repository.ts";
 import { SubscriptionView } from "./subscription-view.ts";
@@ -42,5 +42,18 @@ export class StoreHandlers {
     const stores = await SubscriptionView.forUser(c.get("db"), userId);
 
     return c.json(StoreSubscriptionsHttpResponse.from(stores));
+  }
+
+  static async getSubscription(c: Context<AppEnv>) {
+    const userId = c.get("userId");
+    if (!userId) return c.json({ error: "Unauthorized" }, 401);
+
+    const storeId = c.req.param("storeId");
+    if (!storeId) return c.json({ error: "Invalid request" }, 400);
+
+    const store = await SubscriptionView.forUserStore(c.get("db"), userId, storeId);
+    if (!store) return c.json({ error: "Not found" }, 404);
+
+    return c.json(StoreSubscriptionsHttpResponse.fromOne(store));
   }
 }
