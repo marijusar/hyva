@@ -1,8 +1,8 @@
 import type { Context, Next } from "hono";
-import type { AppEnv } from "../app.ts";
+import type { AppEnv } from "@/app";
 import { AuthCookies } from "./cookies.ts";
 import { Tokens } from "./tokens.ts";
-import { UserRepository } from "../modules/user/repository.ts";
+import { UserRepository } from "@/modules/user/repository";
 
 interface RefreshResult {
   userId: string;

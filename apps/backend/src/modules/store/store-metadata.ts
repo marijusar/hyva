@@ -1,5 +1,5 @@
 import type { Selectable } from "kysely";
-import type { StoreMetadataTable } from "../../db/types.ts";
+import type { StoreMetadataTable } from "@/db/types";
 
 export class StoreMetadata {
   private constructor(

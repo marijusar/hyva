@@ -1,5 +1,5 @@
 import type { Selectable } from "kysely";
-import type { StoreSubscriptionsTable } from "../../db/types.ts";
+import type { StoreSubscriptionsTable } from "@/db/types";
 
 export class StoreSubscription {
   private constructor(

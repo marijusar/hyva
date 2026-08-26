@@ -1,5 +1,5 @@
 import type { Kysely } from "kysely";
-import type { Database } from "../../db/types.ts";
+import type { Database } from "@/db/types";
 import { Store } from "./store.ts";
 import { StoreCrawl } from "./store-crawl.ts";
 

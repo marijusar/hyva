@@ -1,6 +1,6 @@
 import type { Kysely } from "kysely";
 import { z } from "zod";
-import type { Database } from "../../db/types.ts";
+import type { Database } from "@/db/types";
 
 export const newUserSchema = z.object({
   email: z.email(),

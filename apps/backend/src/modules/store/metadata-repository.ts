@@ -1,5 +1,5 @@
 import type { Kysely } from "kysely";
-import type { Database } from "../../db/types.ts";
+import type { Database } from "@/db/types";
 import { StoreMetadata } from "./store-metadata.ts";
 
 export class StoreMetadataRepository {

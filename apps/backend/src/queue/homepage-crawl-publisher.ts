@@ -1,7 +1,7 @@
 import type { Channel } from "amqp-connection-manager";
 import { z } from "zod";
 import { DLX, EXCHANGE, QueueConnection } from "./queue-connection.ts";
-import type { Logger } from "../logging/logger.ts";
+import type { Logger } from "@/logging/logger";
 
 const QUEUE = "crawl.homepage.q";
 const DLQ = "crawl.homepage.dlq";

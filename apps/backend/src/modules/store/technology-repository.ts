@@ -1,6 +1,6 @@
 import type { Kysely } from "kysely";
-import type { Database } from "../../db/types.ts";
-import { type DetectedTechnology } from "../../crawler/technology-matcher.ts";
+import type { Database } from "@/db/types";
+import { type DetectedTechnology } from "@/crawler/technology-matcher";
 import { StoreTechnology } from "./store-technology.ts";
 
 export class StoreTechnologyRepository {

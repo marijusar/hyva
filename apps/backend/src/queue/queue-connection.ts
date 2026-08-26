@@ -1,6 +1,6 @@
 import amqp from "amqp-connection-manager";
 import type { AmqpConnectionManager, ChannelWrapper, Channel } from "amqp-connection-manager";
-import type { Logger } from "../logging/logger.ts";
+import type { Logger } from "@/logging/logger";
 
 // Shared across every job type: the topic exchange jobs get published to,
 // and the dead-letter exchange failed jobs get routed to. Job-specific

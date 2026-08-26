@@ -3,7 +3,7 @@ import type { ConsumeMessage } from "amqplib";
 import { z } from "zod";
 import { DLX, EXCHANGE, QueueConnection } from "./queue-connection.ts";
 import { homepageCrawlJobSchema, type HomepageCrawlJob } from "./homepage-crawl-publisher.ts";
-import type { Logger } from "../logging/logger.ts";
+import type { Logger } from "@/logging/logger";
 
 const QUEUE = "crawl.homepage.q";
 const DLQ = "crawl.homepage.dlq";

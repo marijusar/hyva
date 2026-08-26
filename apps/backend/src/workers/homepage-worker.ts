@@ -1,15 +1,15 @@
-import { DbClient } from "../db/client.ts";
-import { dbEnv } from "../db/env.ts";
-import { queueEnv } from "../queue/env.ts";
+import { DbClient } from "@/db/client";
+import { dbEnv } from "@/db/env";
+import { queueEnv } from "@/queue/env";
 import { homepageWorkerEnv } from "./homepage-worker-env.ts";
-import { LoggerFactory } from "../logging/logger.ts";
-import { TechnologyFingerprints } from "../crawler/technology-fingerprints.ts";
-import { TechnologyMatcher } from "../crawler/technology-matcher.ts";
-import { StoreCrawler } from "../crawler/store-crawler.ts";
-import { HttpPageFetcher } from "../crawler/page-fetcher.ts";
-import { StoreRepository } from "../modules/store/repository.ts";
-import { QueueConnection } from "../queue/queue-connection.ts";
-import { HomepageCrawlConsumer } from "../queue/homepage-crawl-consumer.ts";
+import { LoggerFactory } from "@/logging/logger";
+import { TechnologyFingerprints } from "@/crawler/technology-fingerprints";
+import { TechnologyMatcher } from "@/crawler/technology-matcher";
+import { StoreCrawler } from "@/crawler/store-crawler";
+import { HttpPageFetcher } from "@/crawler/page-fetcher";
+import { StoreRepository } from "@/modules/store/repository";
+import { QueueConnection } from "@/queue/queue-connection";
+import { HomepageCrawlConsumer } from "@/queue/homepage-crawl-consumer";
 
 export class HomepageWorker {
   static async start(): Promise<void> {

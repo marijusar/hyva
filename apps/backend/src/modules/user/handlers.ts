@@ -1,8 +1,8 @@
 import type { Context } from "hono";
-import type { AppEnv } from "../../app.ts";
-import { AuthCookies } from "../../auth/cookies.ts";
-import { Password } from "../../auth/password.ts";
-import { Tokens } from "../../auth/tokens.ts";
+import type { AppEnv } from "@/app";
+import { AuthCookies } from "@/auth/cookies";
+import { Password } from "@/auth/password";
+import { Tokens } from "@/auth/tokens";
 import { UserRepository } from "./repository.ts";
 import { UserSchemas } from "./schemas.ts";
 

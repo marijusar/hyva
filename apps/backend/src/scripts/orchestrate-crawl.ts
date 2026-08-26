@@ -1,11 +1,11 @@
-import { DbClient } from "../db/client.ts";
-import { dbEnv } from "../db/env.ts";
-import { queueEnv } from "../queue/env.ts";
+import { DbClient } from "@/db/client";
+import { dbEnv } from "@/db/env";
+import { queueEnv } from "@/queue/env";
 import { orchestrateCrawlEnv } from "./orchestrate-crawl-env.ts";
-import { LoggerFactory } from "../logging/logger.ts";
-import { StoreCrawlRepository } from "../modules/store/crawl-repository.ts";
-import { QueueConnection } from "../queue/queue-connection.ts";
-import { HomepageCrawlPublisher } from "../queue/homepage-crawl-publisher.ts";
+import { LoggerFactory } from "@/logging/logger";
+import { StoreCrawlRepository } from "@/modules/store/crawl-repository";
+import { QueueConnection } from "@/queue/queue-connection";
+import { HomepageCrawlPublisher } from "@/queue/homepage-crawl-publisher";
 
 class OrchestrateCrawlCommand {
   static async run(): Promise<void> {

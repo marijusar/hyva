@@ -1,6 +1,6 @@
 import type { Hono } from "hono";
-import type { AppEnv } from "../../app.ts";
-import { AuthMiddleware } from "../../auth/middleware.ts";
+import type { AppEnv } from "@/app";
+import { AuthMiddleware } from "@/auth/middleware";
 import { AuthHandlers } from "./handlers.ts";
 
 export class UserRoutes {

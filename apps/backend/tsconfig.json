@@ -11,7 +11,10 @@
       "node"
     ],
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx"
+    "jsxImportSource": "hono/jsx",
+    "paths": {
+      "@/*": ["./src/*.ts"]
+    }
   },
   "exclude": ["node_modules", "dist"]
 }

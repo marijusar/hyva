@@ -1,6 +1,6 @@
 import * as impers from "impers";
 import { z } from "zod";
-import type { Logger } from "../logging/logger.ts";
+import type { Logger } from "@/logging/logger";
 
 const TIMEOUT_SECONDS = 10;
 

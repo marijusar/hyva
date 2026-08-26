@@ -1,13 +1,13 @@
 import type { Kysely } from "kysely";
-import type { Database } from "../db/types.ts";
-import type { Store } from "../modules/store/store.ts";
-import { StoreCrawlRepository } from "../modules/store/crawl-repository.ts";
-import { StoreMetadataRepository } from "../modules/store/metadata-repository.ts";
-import { StoreTechnologyRepository } from "../modules/store/technology-repository.ts";
+import type { Database } from "@/db/types";
+import type { Store } from "@/modules/store/store";
+import { StoreCrawlRepository } from "@/modules/store/crawl-repository";
+import { StoreMetadataRepository } from "@/modules/store/metadata-repository";
+import { StoreTechnologyRepository } from "@/modules/store/technology-repository";
 import { HomepageTextExtractor } from "./homepage-text-extractor.ts";
 import type { FetchedPage, PageFetcher } from "./page-fetcher.ts";
 import type { TechnologyMatcher } from "./technology-matcher.ts";
-import type { Logger } from "../logging/logger.ts";
+import type { Logger } from "@/logging/logger";
 
 export class StoreCrawler {
   private readonly logger: Logger;

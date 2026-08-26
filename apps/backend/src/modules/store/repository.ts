@@ -1,6 +1,6 @@
 import type { Kysely } from "kysely";
 import { z } from "zod";
-import type { Database } from "../../db/types.ts";
+import type { Database } from "@/db/types";
 import { Store } from "./store.ts";
 
 export const newStoreSchema = z.object({
