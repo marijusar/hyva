@@ -29,14 +29,22 @@ Full context: [docs/ARCHITECTURE.md](../../../docs/ARCHITECTURE.md).
   source (`./app.ts`, not `./app.js`); `tsconfig.json`'s
   `rewriteRelativeImportExtensions: true` rewrites them to `.js` in the
   compiled `dist/` output.
-- **Cross-directory imports use the `#` subpath alias**, not deep relative
-  paths — `#src/db/client` (bare, no extension) instead of
-  `../../src/db/client.ts`. Defined in `package.json`'s `imports` field:
-  `#src/*`, `#test/*`, `#migrations/*`. This is Node's native subpath-imports
-  mechanism (not a bundler alias), so it resolves identically under `node`,
-  `tsc`, and vitest. Keep same-directory sibling imports as plain relative
-  paths — only alias when crossing a directory boundary (e.g. `test/` →
-  `src/`).
+- **Cross-directory imports inside `src/` use the `@/*` path alias** — `@/db/client`
+  (bare, no extension) instead of `../../db/client.ts`. Defined in
+  `tsconfig.json`'s `paths` (`"@/*": ["./src/*.ts"]`, `.ts` suffix required
+  under `NodeNext` resolution). Plain `tsc` doesn't rewrite `@/`-style
+  specifiers in emitted JS, so every script that runs `tsc -p
+  tsconfig.build.json` is followed by `tsc-alias -p tsconfig.build.json -f`
+  (the `-f`/`--resolve-full-paths` flag adds the `.js` extension Node's ESM
+  resolver requires) before `node dist/...` runs; `vitest.config.ts` sets
+  `resolve.tsconfigPaths: true` so tests resolve the same aliases. Keep
+  same-directory sibling imports as plain relative paths — only alias when
+  crossing a directory boundary.
+  **`test/` and `migrations/` are separate roots**, not part of `src/`'s `@/`
+  alias — they still use Node's native subpath-imports mechanism from
+  `package.json`'s `imports` field (`#src/*`, `#test/*`, `#migrations/*`),
+  which resolves identically under `node`, `tsc`, and vitest with zero extra
+  tooling. A test importing from `src/` writes `#src/db/client`, not `@/db/client`.
 - **Env vars**: never read `process.env` directly or fall back with `??`.
   `src/env.ts` parses `process.env` through a Zod schema once at import and
   exports the typed, validated `env` — import that everywhere. Fail fast on
