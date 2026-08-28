@@ -11,9 +11,7 @@ export const catalogEntrySchema = z.object({
 export type CatalogEntry = z.infer<typeof catalogEntrySchema>;
 
 export class TechnologyCatalogRepository {
-  // Re-runnable resync: refreshes category on conflict rather than
-  // doNothing — a technology's category can change upstream between
-  // vendor pulls, and a stale category shouldn't survive a resync.
+  // Refreshes category on conflict, so a resync doesn't leave it stale.
   static async upsertMany(db: Kysely<Database>, technologies: CatalogEntry[]): Promise<void> {
     if (technologies.length === 0) return;
 
@@ -24,9 +22,6 @@ export class TechnologyCatalogRepository {
       .execute();
   }
 
-  // Small, slow-growing table (bounded by vendored technology count, not
-  // crawl volume) — an unindexed ILIKE scan here stays cheap regardless
-  // of app scale, unlike scanning store_technologies directly.
   static async searchByName(db: Kysely<Database>, query: string, limit = 50): Promise<Technology[]> {
     const rows = await db
       .selectFrom("technologies")

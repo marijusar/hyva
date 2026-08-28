@@ -20,11 +20,7 @@ export const storeProfileSchema = subscribedStoreSchema.extend({
 
 export type StoreProfile = z.infer<typeof storeProfileSchema>;
 
-// Full profile for one store — works for any store, regardless of whether
-// the caller follows it. `userId` is only used to compute `isSubscribed`;
-// it does not gate the lookup. This is what /dashboard/[storeId] and
-// search results both render — following a store only changes whether
-// you're notified about it, not whether you can see it.
+// Full profile for any store, not gated by whether the caller follows it.
 export class StoreProfileView {
   static async forStore(db: Kysely<Database>, storeId: string, userId: string): Promise<StoreProfile | undefined> {
     const store = await StoreRepository.getById(db, storeId);

@@ -88,10 +88,6 @@ describe("store search", () => {
     expect(await res.json()).toEqual([]);
   });
 
-  // Regression: DISTINCT ON (store_id, name) must be used, not (store_id)
-  // alone — a naive implementation could pick only the single latest row
-  // across ALL technologies for a store, wrongly excluding it when a
-  // different technology's more recent event was a removal.
   it("still returns a store when a different technology's later removal doesn't affect the matched one", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
     const cookie = await registerAndLogin(app, "search-distinct-on@hyva.dev");
@@ -101,12 +97,10 @@ describe("store search", () => {
       { name: "Klarna", category: "payments" },
     ]);
 
-    // Klaviyo added and stays active.
     await StoreTechnologyRepository.record(testDb.db, store.id, [
       { name: "Klaviyo", category: "email" },
       { name: "Klarna", category: "payments" },
     ]);
-    // Later crawl: Klarna disappears (removed), Klaviyo still detected.
     await StoreTechnologyRepository.record(testDb.db, store.id, [{ name: "Klaviyo", category: "email" }]);
 
     const res = await app.request("/stores/search?q=kla", { headers: { cookie } });

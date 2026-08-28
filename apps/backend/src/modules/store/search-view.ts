@@ -16,12 +16,7 @@ export const storeSearchResultSchema = z.object({
 
 export type StoreSearchResult = z.infer<typeof storeSearchResultSchema>;
 
-// Unified search: one query matches store domain/name or technology name,
-// always returns stores. Technology matching goes through the small
-// catalog table first (fuzzy ILIKE there, cheap regardless of app scale),
-// then an exact lookup against store_technologies for which stores
-// currently have a matched technology active — see
-// StoreTechnologyRepository.getActiveStoresForNames for why.
+// Unified search: one query matches domain, name, or technology; always returns stores.
 export class StoreSearchView {
   static async search(db: Kysely<Database>, userId: string, rawQuery: string, limit = 25): Promise<StoreSearchResult[]> {
     const query = rawQuery.trim();

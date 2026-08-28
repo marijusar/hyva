@@ -20,11 +20,7 @@ export const subscribedStoreSchema = z.object({
 
 export type SubscribedStore = z.infer<typeof subscribedStoreSchema>;
 
-// Read-side counterpart to StoreCrawler: that composes the writes into
-// store_crawls/store_metadata/store_technologies, this composes the reads
-// back into one shape for a user's subscribed stores. Used only for the
-// "stores I follow" list — per-store detail now goes through
-// StoreProfileView (profile-view.ts), which isn't ownership-scoped.
+// Read-side counterpart to StoreCrawler. Only used for the "stores I follow" list now.
 export class SubscriptionView {
   static async forUser(db: Kysely<Database>, userId: string): Promise<SubscribedStore[]> {
     const stores = await StoreSubscriptionRepository.getSubscribedStores(db, userId);
