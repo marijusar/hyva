@@ -32,7 +32,11 @@ export class StoreTechnologyRepository {
   // an already-active technology is not tracked — only presence/absence is
   // event-worthy right now. No row is ever mutated; store_technologies IS
   // the event log.
-  static async record(db: Kysely<Database>, storeId: string, technologies: DetectedTechnology[]): Promise<void> {
+  static async record(
+    db: Kysely<Database>,
+    storeId: string,
+    technologies: DetectedTechnology[],
+  ): Promise<{ name: string; category: string | null; eventType: TechnologyEventType }[]> {
     const latestByName = await StoreTechnologyRepository.latestRowsByName(db, storeId);
     const detectedNames = new Set(technologies.map((tech) => tech.name));
 
@@ -51,12 +55,14 @@ export class StoreTechnologyRepository {
       }
     }
 
-    if (toInsert.length === 0) return;
+    if (toInsert.length === 0) return [];
 
     await db
       .insertInto("store_technologies")
       .values(toInsert.map((event) => ({ store_id: storeId, name: event.name, category: event.category, event_type: event.eventType })))
       .execute();
+
+    return toInsert;
   }
 
   private static async latestRowsByName(db: Kysely<Database>, storeId: string) {

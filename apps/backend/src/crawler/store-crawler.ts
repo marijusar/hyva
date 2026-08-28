@@ -7,6 +7,7 @@ import { StoreTechnologyRepository } from "@/modules/store/technology-repository
 import { HomepageTextExtractor } from "./homepage-text-extractor.ts";
 import type { FetchedPage, PageFetcher } from "./page-fetcher.ts";
 import type { TechnologyMatcher } from "./technology-matcher.ts";
+import type { TechnologyEventPublisher } from "@/queue/technology-event-publisher";
 import type { Logger } from "@/logging/logger";
 
 export class StoreCrawler {
@@ -15,6 +16,7 @@ export class StoreCrawler {
   constructor(
     private readonly matcher: TechnologyMatcher,
     private readonly fetcher: PageFetcher,
+    private readonly publisher: TechnologyEventPublisher,
     logger: Logger,
   ) {
     this.logger = logger.child({ module: "[STORE_CRAWLER]" });
@@ -35,10 +37,19 @@ export class StoreCrawler {
     const detected = await this.matcher.match(page.html);
     const platform = detected.some((tech) => tech.name === "Shopify") ? "shopify" : null;
     await StoreMetadataRepository.record(db, store.id, platform, HomepageTextExtractor.extract(page.html));
-    await StoreTechnologyRepository.record(db, store.id, detected);
+
+    const events = await StoreTechnologyRepository.record(db, store.id, detected);
+    await Promise.all(events.map((event) => this.publisher.publish({ storeId: store.id, ...event })));
 
     this.logger.info(
-      { storeId: store.id, domain: store.domain, status, platform, technologyCount: detected.length },
+      {
+        storeId: store.id,
+        domain: store.domain,
+        status,
+        platform,
+        technologyCount: detected.length,
+        eventCount: events.length,
+      },
       "homepage crawl complete",
     );
   }

@@ -13,6 +13,7 @@
     "db:migrate": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json -f && node --env-file-if-exists=.env dist/db/migrate.js",
     "sync:technologies": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json -f && node --env-file-if-exists=.env dist/scripts/sync-technologies.js",
     "worker:homepage": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json -f && (tsc -p tsconfig.build.json --watch --preserveWatchOutput &) && (tsc-alias -p tsconfig.build.json -f --watch &) && node --watch --env-file-if-exists=.env dist/workers/homepage-worker.js",
+    "worker:technology-events": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json -f && (tsc -p tsconfig.build.json --watch --preserveWatchOutput &) && (tsc-alias -p tsconfig.build.json -f --watch &) && node --watch --env-file-if-exists=.env dist/workers/technology-event-worker.js",
     "crawl:orchestrate": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json -f && node --env-file-if-exists=.env dist/scripts/orchestrate-crawl.js",
     "test": "vitest run"
   },

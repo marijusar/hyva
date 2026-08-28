@@ -4,6 +4,7 @@ import { StoreCrawler } from "#src/crawler/store-crawler";
 import { TechnologyFingerprints } from "#src/crawler/technology-fingerprints";
 import { TechnologyMatcher } from "#src/crawler/technology-matcher";
 import type { FetchedPage, PageFetcher } from "#src/crawler/page-fetcher";
+import type { TechnologyEventJob, TechnologyEventPublisher } from "#src/queue/technology-event-publisher";
 import { LoggerFactory } from "#src/logging/logger";
 import { TestDatabase } from "./utils/database.ts";
 
@@ -12,6 +13,14 @@ class FakePageFetcher implements PageFetcher {
 
   async fetch(): Promise<FetchedPage | null> {
     return this.page;
+  }
+}
+
+class FakeTechnologyEventPublisher implements TechnologyEventPublisher {
+  readonly published: TechnologyEventJob[] = [];
+
+  async publish(job: TechnologyEventJob): Promise<void> {
+    this.published.push(job);
   }
 }
 
@@ -30,7 +39,8 @@ describe("StoreCrawler", () => {
 
   it("records a dead attempt and nothing else when the fetch fails", async () => {
     const store = await StoreRepository.create(testDb.db, { domain: "dead.myshopify.com", name: null });
-    const crawler = new StoreCrawler(matcher, new FakePageFetcher(null), logger);
+    const publisher = new FakeTechnologyEventPublisher();
+    const crawler = new StoreCrawler(matcher, new FakePageFetcher(null), publisher, logger);
 
     await crawler.crawlHomepage(testDb.db, store);
 
@@ -43,11 +53,18 @@ describe("StoreCrawler", () => {
       .where("store_id", "=", store.id)
       .execute();
     expect(metadata).toHaveLength(0);
+    expect(publisher.published).toEqual([]);
   });
 
   it("records an error status for a non-2xx response", async () => {
     const store = await StoreRepository.create(testDb.db, { domain: "broken.myshopify.com", name: null });
-    const crawler = new StoreCrawler(matcher, new FakePageFetcher({ html: "<html></html>", statusCode: 500 }), logger);
+    const publisher = new FakeTechnologyEventPublisher();
+    const crawler = new StoreCrawler(
+      matcher,
+      new FakePageFetcher({ html: "<html></html>", statusCode: 500 }),
+      publisher,
+      logger,
+    );
 
     await crawler.crawlHomepage(testDb.db, store);
 
@@ -55,7 +72,7 @@ describe("StoreCrawler", () => {
     expect(crawls.map((c) => c.status)).toEqual(["error"]);
   });
 
-  it("detects platform, technologies, and homepage text for an active Shopify page", async () => {
+  it("detects platform, technologies, and homepage text for an active Shopify page, and publishes the technology events", async () => {
     const store = await StoreRepository.create(testDb.db, { domain: "active.myshopify.com", name: null });
     const html = `
       <html>
@@ -67,7 +84,8 @@ describe("StoreCrawler", () => {
         <body></body>
       </html>
     `;
-    const crawler = new StoreCrawler(matcher, new FakePageFetcher({ html, statusCode: 200 }), logger);
+    const publisher = new FakeTechnologyEventPublisher();
+    const crawler = new StoreCrawler(matcher, new FakePageFetcher({ html, statusCode: 200 }), publisher, logger);
 
     await crawler.crawlHomepage(testDb.db, store);
 
@@ -88,5 +106,9 @@ describe("StoreCrawler", () => {
       .where("store_id", "=", store.id)
       .execute();
     expect(technologies).toContainEqual(expect.objectContaining({ name: "Shopify", category: "Ecommerce" }));
+
+    expect(publisher.published).toContainEqual(
+      expect.objectContaining({ storeId: store.id, name: "Shopify", eventType: "added" }),
+    );
   });
 });

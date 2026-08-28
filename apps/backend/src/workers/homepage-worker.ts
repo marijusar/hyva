@@ -10,6 +10,7 @@ import { HttpPageFetcher } from "@/crawler/page-fetcher";
 import { StoreRepository } from "@/modules/store/repository";
 import { QueueConnection } from "@/queue/queue-connection";
 import { HomepageCrawlConsumer } from "@/queue/homepage-crawl-consumer";
+import { QueueTechnologyEventPublisher } from "@/queue/technology-event-publisher";
 
 export class HomepageWorker {
   static async start(): Promise<void> {
@@ -18,7 +19,8 @@ export class HomepageWorker {
     const connection = new QueueConnection(queueEnv.RABBITMQ_URL, logger);
     const consumer = new HomepageCrawlConsumer(connection, logger);
     const matcher = new TechnologyMatcher(new TechnologyFingerprints());
-    const crawler = new StoreCrawler(matcher, new HttpPageFetcher(logger), logger);
+    const publisher = new QueueTechnologyEventPublisher(connection, logger);
+    const crawler = new StoreCrawler(matcher, new HttpPageFetcher(logger), publisher, logger);
 
     await consumer.consume(async (job) => {
       const store = await StoreRepository.getById(db, job.storeId);
