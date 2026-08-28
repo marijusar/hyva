@@ -14,7 +14,7 @@ describe("StoreTechnologyRepository", () => {
     await testDb.teardown();
   });
 
-  it("record() inserts new technologies", async () => {
+  it("record() inserts new technologies as 'added' events", async () => {
     const store = await StoreRepository.create(testDb.db, { domain: "tech.myshopify.com", name: null });
 
     await StoreTechnologyRepository.record(testDb.db, store.id, [
@@ -24,9 +24,10 @@ describe("StoreTechnologyRepository", () => {
 
     const active = await StoreTechnologyRepository.getActiveByStore(testDb.db, store.id);
     expect(active.map((t) => t.name).sort()).toEqual(["Klaviyo", "Shopify"]);
+    expect(active.every((t) => t.eventType === "added")).toBe(true);
   });
 
-  it("record() appends a new row when category changes", async () => {
+  it("record() ignores a category change on an already-active technology", async () => {
     const store = await StoreRepository.create(testDb.db, { domain: "category.myshopify.com", name: null });
     await StoreTechnologyRepository.record(testDb.db, store.id, [{ name: "Klaviyo", category: "email" }]);
 
@@ -37,11 +38,10 @@ describe("StoreTechnologyRepository", () => {
       .selectAll()
       .where("store_id", "=", store.id)
       .execute();
-    expect(rows).toHaveLength(2);
+    expect(rows).toHaveLength(1);
 
     const active = await StoreTechnologyRepository.getActiveByStore(testDb.db, store.id);
-    expect(active).toHaveLength(1);
-    expect(active[0]?.category).toBe("marketing");
+    expect(active[0]?.category).toBe("email");
   });
 
   it("record() inserts nothing when nothing changed", async () => {
@@ -58,7 +58,7 @@ describe("StoreTechnologyRepository", () => {
     expect(rows).toHaveLength(1);
   });
 
-  it("record() soft-deletes a technology missing from the new crawl", async () => {
+  it("record() emits a 'removed' event for a technology missing from the new crawl", async () => {
     const store = await StoreRepository.create(testDb.db, { domain: "deleted.myshopify.com", name: null });
     await StoreTechnologyRepository.record(testDb.db, store.id, [
       { name: "Klaviyo", category: "email" },
@@ -70,9 +70,18 @@ describe("StoreTechnologyRepository", () => {
 
     const active = await StoreTechnologyRepository.getActiveByStore(testDb.db, store.id);
     expect(active.map((t) => t.name)).toEqual(["Shopify"]);
+
+    const rows = await testDb.db
+      .selectFrom("store_technologies")
+      .selectAll()
+      .where("store_id", "=", store.id)
+      .where("name", "=", "Klaviyo")
+      .orderBy("created_at", "desc")
+      .execute();
+    expect(rows[0]?.event_type).toBe("removed");
   });
 
-  it("record() reintroduces a previously deleted technology as a new row", async () => {
+  it("record() reintroduces a previously removed technology as an 'added' event", async () => {
     const store = await StoreRepository.create(testDb.db, { domain: "resurrect.myshopify.com", name: null });
     await StoreTechnologyRepository.record(testDb.db, store.id, [{ name: "Klaviyo", category: "email" }]);
     await StoreTechnologyRepository.record(testDb.db, store.id, []);
@@ -81,6 +90,18 @@ describe("StoreTechnologyRepository", () => {
 
     const active = await StoreTechnologyRepository.getActiveByStore(testDb.db, store.id);
     expect(active).toHaveLength(1);
-    expect(active[0]?.deletedAt).toBeNull();
+    expect(active[0]?.eventType).toBe("added");
+  });
+
+  it("getEventsByStore() returns the full history, most recent first", async () => {
+    const store = await StoreRepository.create(testDb.db, { domain: "history.myshopify.com", name: null });
+    await StoreTechnologyRepository.record(testDb.db, store.id, [{ name: "Klaviyo", category: "email" }]);
+    await StoreTechnologyRepository.record(testDb.db, store.id, []);
+
+    const events = await StoreTechnologyRepository.getEventsByStore(testDb.db, store.id);
+
+    expect(events).toHaveLength(2);
+    expect(events[0]?.eventType).toBe("removed");
+    expect(events[1]?.eventType).toBe("added");
   });
 });

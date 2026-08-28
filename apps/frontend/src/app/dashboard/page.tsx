@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CrawlStatusBadge } from "@/components/store/crawl-status-badge";
 import { StoreServer } from "@/lib/http/store-server";
 import { LogoutButton } from "./logout-button";
 
@@ -44,7 +44,7 @@ export default async function DashboardPage() {
                 </TableCell>
                 <TableCell>{store.platform ?? "—"}</TableCell>
                 <TableCell>
-                  {store.last_crawl_status ? <Badge variant="outline">{store.last_crawl_status}</Badge> : "—"}
+                  {store.last_crawl_status ? <CrawlStatusBadge status={store.last_crawl_status} /> : "—"}
                   {store.last_crawled_at ? (
                     <div className="text-xs text-muted-foreground">
                       {new Date(store.last_crawled_at).toLocaleString()}

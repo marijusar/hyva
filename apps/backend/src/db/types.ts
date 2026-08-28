@@ -27,9 +27,8 @@ export interface StoreTechnologiesTable {
   store_id: string;
   name: string;
   category: string | null;
-  deleted_at: string | null;
+  event_type: string;
   created_at: Generated<string>;
-  updated_at: Generated<string>;
 }
 
 export interface StoreSubscriptionsTable {

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { CrawlStatusBadge } from "@/components/store/crawl-status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StoreServer } from "@/lib/http/store-server";
 
@@ -35,7 +36,7 @@ export default async function StoreDetailPage({ params }: PageProps<"/dashboard/
             <CardTitle className="text-sm text-muted-foreground">Last crawl</CardTitle>
           </CardHeader>
           <CardContent>
-            {store.last_crawl_status ? <Badge variant="outline">{store.last_crawl_status}</Badge> : "—"}
+            {store.last_crawl_status ? <CrawlStatusBadge status={store.last_crawl_status} /> : "—"}
             {store.last_crawled_at ? (
               <div className="text-xs text-muted-foreground mt-1">
                 {new Date(store.last_crawled_at).toLocaleString()}
@@ -61,6 +62,39 @@ export default async function StoreDetailPage({ params }: PageProps<"/dashboard/
                 </Badge>
               ))}
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Technology history</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {store.technology_events.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No history yet.</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {store.technology_events.map((event, index) => (
+                <li key={index} className="flex flex-wrap items-center gap-2 text-sm">
+                  <Badge
+                    variant="outline"
+                    className={
+                      event.event_type === "added"
+                        ? "border-green-200 bg-green-50 text-green-700"
+                        : "border-red-200 bg-red-50 text-red-700"
+                    }
+                  >
+                    {event.event_type}
+                  </Badge>
+                  <span className="font-medium">{event.name}</span>
+                  {event.category ? <span className="text-muted-foreground">· {event.category}</span> : null}
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {new Date(event.created_at).toLocaleString()}
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
         </CardContent>
       </Card>

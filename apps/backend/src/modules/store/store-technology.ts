@@ -7,20 +7,11 @@ export class StoreTechnology {
     public readonly storeId: string,
     public readonly name: string,
     public readonly category: string | null,
-    public readonly deletedAt: Date | null,
+    public readonly eventType: string,
     public readonly createdAt: Date,
-    public readonly updatedAt: Date,
   ) {}
 
   static fromRow(row: Selectable<StoreTechnologiesTable>): StoreTechnology {
-    return new StoreTechnology(
-      row.id,
-      row.store_id,
-      row.name,
-      row.category,
-      row.deleted_at ? new Date(row.deleted_at) : null,
-      new Date(row.created_at),
-      new Date(row.updated_at),
-    );
+    return new StoreTechnology(row.id, row.store_id, row.name, row.category, row.event_type, new Date(row.created_at));
   }
 }

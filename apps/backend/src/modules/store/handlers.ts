@@ -54,6 +54,6 @@ export class StoreHandlers {
     const store = await SubscriptionView.forUserStore(c.get("db"), userId, storeId);
     if (!store) return c.json({ error: "Not found" }, 404);
 
-    return c.json(StoreSubscriptionsHttpResponse.fromOne(store));
+    return c.json(StoreSubscriptionsHttpResponse.fromDetail(store));
   }
 }
