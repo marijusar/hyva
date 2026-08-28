@@ -8,6 +8,8 @@ export class StoreRoutes {
     app.post("/subscriptions", AuthMiddleware.requireAuth(), StoreHandlers.subscribe);
     app.delete("/subscriptions/:storeId", AuthMiddleware.requireAuth(), StoreHandlers.unsubscribe);
     app.get("/subscriptions", AuthMiddleware.requireAuth(), StoreHandlers.listSubscriptions);
-    app.get("/subscriptions/:storeId", AuthMiddleware.requireAuth(), StoreHandlers.getSubscription);
+
+    app.get("/stores/search", AuthMiddleware.requireAuth(), StoreHandlers.search);
+    app.get("/stores/:id", AuthMiddleware.requireAuth(), StoreHandlers.getProfile);
   }
 }

@@ -4,10 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { CrawlStatusBadge } from "@/components/store/crawl-status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StoreServer } from "@/lib/http/store-server";
+import { StoreFollowButton } from "@/components/store/store-follow-button";
 
 export default async function StoreDetailPage({ params }: PageProps<"/dashboard/[storeId]">) {
   const { storeId } = await params;
-  const res = await StoreServer.getSubscription(storeId);
+  const res = await StoreServer.getStoreProfile(storeId);
 
   if (!res.ok || !res.data) notFound();
 
@@ -19,9 +20,12 @@ export default async function StoreDetailPage({ params }: PageProps<"/dashboard/
         ← Back to stores
       </Link>
 
-      <div>
-        <h1 className="text-2xl font-semibold">{store.name ?? store.domain}</h1>
-        <p className="text-sm text-muted-foreground">{store.domain}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">{store.name ?? store.domain}</h1>
+          <p className="text-sm text-muted-foreground">{store.domain}</p>
+        </div>
+        <StoreFollowButton storeId={store.id} domain={store.domain} initialIsSubscribed={store.is_subscribed} />
       </div>
 
       <div className="flex flex-wrap gap-4">

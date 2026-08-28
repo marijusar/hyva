@@ -58,4 +58,18 @@ export class StoreSubscriptionRepository {
 
     return row ? Store.fromRow(row) : undefined;
   }
+
+  // Batch version of getSubscribedStore, for annotating a result list.
+  static async getSubscribedStoreIds(db: Kysely<Database>, userId: string, storeIds: string[]): Promise<Set<string>> {
+    if (storeIds.length === 0) return new Set();
+
+    const rows = await db
+      .selectFrom("store_subscriptions")
+      .select("store_id")
+      .where("user_id", "=", userId)
+      .where("store_id", "in", storeIds)
+      .execute();
+
+    return new Set(rows.map((row) => row.store_id));
+  }
 }

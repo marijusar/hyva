@@ -26,6 +26,39 @@ export class StoreTechnologyRepository {
     return rows.map((row) => StoreTechnology.fromRow(row));
   }
 
+  // Given a set of technology names already resolved via the small
+  // technology catalog (see TechnologyCatalogRepository.searchByName —
+  // that's where fuzzy ILIKE matching happens, never here), finds which
+  // stores currently have any of them active. `name IN (...)` is an exact
+  // match, served by store_technologies_name_idx — unlike ILIKE, this
+  // scales independently of how large the event log grows.
+  //
+  // DISTINCT ON (store_id, name), not (store_id) alone: the latter would
+  // pick only the single latest row across *all* technologies for a
+  // store, which can wrongly drop a store where the matched technology is
+  // still active but a *different* technology had a more recent (e.g.
+  // removed) event.
+  static async getActiveStoresForNames(
+    db: Kysely<Database>,
+    names: string[],
+    limit = 25,
+  ): Promise<{ storeId: string; name: string }[]> {
+    if (names.length === 0) return [];
+
+    const rows = await db
+      .selectFrom("store_technologies")
+      .distinctOn(["store_id", "name"])
+      .select(["store_id", "name", "event_type"])
+      .where("name", "in", names)
+      .orderBy("store_id")
+      .orderBy("name")
+      .orderBy("created_at", "desc")
+      .limit(limit)
+      .execute();
+
+    return rows.filter((row) => row.event_type !== "removed").map((row) => ({ storeId: row.store_id, name: row.name }));
+  }
+
   // Pure append-only reconciliation: "added" for anything newly detected
   // (first time seen or reappeared after removal), "removed" for anything
   // previously active that's missing from this crawl. A category drift on

@@ -30,13 +30,24 @@ export class ServerHttp {
   }
 
   static async post<T>(path: string, body: unknown, schema: z.ZodType<T>): Promise<HttpResult<T>> {
+    const cookieStore = await cookies();
     const res = await fetch(`${process.env.INTERNAL_API_URL}${path}`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", cookie: cookieStore.toString() },
       body: JSON.stringify(body),
       cache: "no-store",
     });
     await ServerHttp.forwardSetCookies(res);
+    return ServerHttp.toResult(res, schema);
+  }
+
+  static async delete<T>(path: string, schema: z.ZodType<T>): Promise<HttpResult<T>> {
+    const cookieStore = await cookies();
+    const res = await fetch(`${process.env.INTERNAL_API_URL}${path}`, {
+      method: "DELETE",
+      headers: { cookie: cookieStore.toString() },
+      cache: "no-store",
+    });
     return ServerHttp.toResult(res, schema);
   }
 

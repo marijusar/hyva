@@ -38,6 +38,13 @@ export interface StoreSubscriptionsTable {
   created_at: Generated<string>;
 }
 
+export interface TechnologiesTable {
+  id: Generated<string>;
+  name: string;
+  category: string | null;
+  created_at: Generated<string>;
+}
+
 export interface UsersTable {
   id: Generated<string>;
   email: string;
@@ -65,6 +72,7 @@ export interface Database {
   store_metadata: StoreMetadataTable;
   store_technologies: StoreTechnologiesTable;
   store_subscriptions: StoreSubscriptionsTable;
+  technologies: TechnologiesTable;
   users: UsersTable;
   user_sessions: UserSessionsTable;
 }
