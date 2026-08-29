@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { StoreFollowButton } from "@/components/store/store-follow-button";
 import { searchStores } from "@/lib/actions/store-search";
+import { useDebouncedFn } from "@/hooks/use-debounced-fn";
 import type { StoreSearchResult } from "@/lib/http/store-server";
 
 const DEBOUNCE_MS = 350;
@@ -21,14 +22,16 @@ export function DiscoverSearch({
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState(initialResults);
   const [loading, setLoading] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const requestIdRef = useRef(0);
+
+  const debouncedSearch = useDebouncedFn(async (value: string) => {
+    const res = await searchStores(value);
+    setResults(res.data);
+    setLoading(false);
+  }, DEBOUNCE_MS);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
     setQuery(value);
-
-    if (timerRef.current) clearTimeout(timerRef.current);
 
     if (!value.trim()) {
       setResults([]);
@@ -37,14 +40,7 @@ export function DiscoverSearch({
     }
 
     setLoading(true);
-    const requestId = ++requestIdRef.current;
-    timerRef.current = setTimeout(async () => {
-      const next = await searchStores(value);
-      if (requestId === requestIdRef.current) {
-        setResults(next);
-        setLoading(false);
-      }
-    }, DEBOUNCE_MS);
+    debouncedSearch(value);
   }
 
   return (

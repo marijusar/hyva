@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { followStore, unfollowStore } from "@/lib/actions/store-subscription";
+import { createDefaultServerActionResponse, ServerActionStatuses } from "@/lib/responses/server-action-response";
+
+const initialState = createDefaultServerActionResponse(null);
 
 export function StoreFollowButton({
   storeId,
@@ -14,28 +17,27 @@ export function StoreFollowButton({
   initialIsSubscribed: boolean;
 }) {
   const [isSubscribed, setIsSubscribed] = useState(initialIsSubscribed);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [prevState, setPrevState] = useState(initialState);
 
-  async function handleClick() {
-    setPending(true);
-    setError(null);
-    const result = isSubscribed ? await unfollowStore(storeId) : await followStore(domain);
-    if (!result.ok) {
-      setError(result.error ?? "Something went wrong");
-      setPending(false);
-      return;
+  const [state, formAction, isPending] = useActionState(async () => {
+    return isSubscribed ? await unfollowStore(storeId) : await followStore(domain);
+  }, initialState);
+
+  if (state !== prevState) {
+    setPrevState(state);
+    if (state.status === ServerActionStatuses.success) {
+      setIsSubscribed((prev) => !prev);
     }
-    setIsSubscribed((prev) => !prev);
-    setPending(false);
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
-      <Button type="button" variant={isSubscribed ? "outline" : "default"} disabled={pending} onClick={handleClick}>
-        {pending ? "…" : isSubscribed ? "Unsubscribe" : "Subscribe"}
+    <form action={formAction} className="flex flex-col items-end gap-1">
+      <Button type="submit" variant={isSubscribed ? "outline" : "default"} disabled={isPending}>
+        {isPending ? "…" : isSubscribed ? "Unsubscribe" : "Subscribe"}
       </Button>
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-    </div>
+      {state.status === ServerActionStatuses.error && state.error ? (
+        <p className="text-sm text-destructive">{state.error}</p>
+      ) : null}
+    </form>
   );
 }
