@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { SubscribedStore, SubscribedStoreDetail } from "./subscription-view.ts";
+import type { SubscribedStore } from "./subscription-view.ts";
 
 const subscriptionSchema = z.object({
   id: z.uuid(),
@@ -10,17 +10,6 @@ const subscriptionSchema = z.object({
   platform: z.string().nullable().default(null),
   homepage_text: z.string().nullable().default(null),
   technologies: z.array(z.object({ name: z.string(), category: z.string().nullable() })),
-});
-
-const subscriptionDetailSchema = subscriptionSchema.extend({
-  technology_events: z.array(
-    z.object({
-      name: z.string(),
-      category: z.string().nullable(),
-      event_type: z.string(),
-      created_at: z.iso.datetime(),
-    }),
-  ),
 });
 
 export class StoreSubscriptionsHttpResponse {
@@ -38,18 +27,6 @@ export class StoreSubscriptionsHttpResponse {
       platform: store.platform,
       homepage_text: store.homepageText,
       technologies: store.technologies,
-    });
-  }
-
-  static fromDetail(store: SubscribedStoreDetail) {
-    return subscriptionDetailSchema.parse({
-      ...StoreSubscriptionsHttpResponse.fromOne(store),
-      technology_events: store.technologyEvents.map((event) => ({
-        name: event.name,
-        category: event.category,
-        event_type: event.eventType,
-        created_at: event.createdAt.toISOString(),
-      })),
     });
   }
 }

@@ -14,13 +14,16 @@ describe("StoreTechnologyRepository", () => {
     await testDb.teardown();
   });
 
-  it("record() inserts new technologies as 'added' events", async () => {
+  it("record() inserts new technologies as 'added' events and returns them", async () => {
     const store = await StoreRepository.create(testDb.db, { domain: "tech.myshopify.com", name: null });
 
-    await StoreTechnologyRepository.record(testDb.db, store.id, [
+    const events = await StoreTechnologyRepository.record(testDb.db, store.id, [
       { name: "Shopify", category: "ecommerce" },
       { name: "Klaviyo", category: "email" },
     ]);
+
+    expect(events.map((e) => e.name).sort()).toEqual(["Klaviyo", "Shopify"]);
+    expect(events.every((e) => e.eventType === "added")).toBe(true);
 
     const active = await StoreTechnologyRepository.getActiveByStore(testDb.db, store.id);
     expect(active.map((t) => t.name).sort()).toEqual(["Klaviyo", "Shopify"]);
@@ -58,6 +61,15 @@ describe("StoreTechnologyRepository", () => {
     expect(rows).toHaveLength(1);
   });
 
+  it("record() returns no events when nothing changed", async () => {
+    const store = await StoreRepository.create(testDb.db, { domain: "no-events.myshopify.com", name: null });
+    await StoreTechnologyRepository.record(testDb.db, store.id, [{ name: "Klaviyo", category: "email" }]);
+
+    const events = await StoreTechnologyRepository.record(testDb.db, store.id, [{ name: "Klaviyo", category: "email" }]);
+
+    expect(events).toEqual([]);
+  });
+
   it("record() emits a 'removed' event for a technology missing from the new crawl", async () => {
     const store = await StoreRepository.create(testDb.db, { domain: "deleted.myshopify.com", name: null });
     await StoreTechnologyRepository.record(testDb.db, store.id, [
@@ -66,7 +78,8 @@ describe("StoreTechnologyRepository", () => {
     ]);
 
     // Next crawl no longer detects Klaviyo.
-    await StoreTechnologyRepository.record(testDb.db, store.id, [{ name: "Shopify", category: "ecommerce" }]);
+    const events = await StoreTechnologyRepository.record(testDb.db, store.id, [{ name: "Shopify", category: "ecommerce" }]);
+    expect(events).toEqual([{ name: "Klaviyo", category: "email", eventType: "removed" }]);
 
     const active = await StoreTechnologyRepository.getActiveByStore(testDb.db, store.id);
     expect(active.map((t) => t.name)).toEqual(["Shopify"]);

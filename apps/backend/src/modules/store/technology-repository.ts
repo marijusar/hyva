@@ -26,13 +26,39 @@ export class StoreTechnologyRepository {
     return rows.map((row) => StoreTechnology.fromRow(row));
   }
 
+  // Exact name match (indexed) against already-resolved catalog names — never ILIKE here.
+  static async getActiveStoresForNames(
+    db: Kysely<Database>,
+    names: string[],
+    limit = 25,
+  ): Promise<{ storeId: string; name: string }[]> {
+    if (names.length === 0) return [];
+
+    const rows = await db
+      .selectFrom("store_technologies")
+      .distinctOn(["store_id", "name"])
+      .select(["store_id", "name", "event_type"])
+      .where("name", "in", names)
+      .orderBy("store_id")
+      .orderBy("name")
+      .orderBy("created_at", "desc")
+      .limit(limit)
+      .execute();
+
+    return rows.filter((row) => row.event_type !== "removed").map((row) => ({ storeId: row.store_id, name: row.name }));
+  }
+
   // Pure append-only reconciliation: "added" for anything newly detected
   // (first time seen or reappeared after removal), "removed" for anything
   // previously active that's missing from this crawl. A category drift on
   // an already-active technology is not tracked — only presence/absence is
   // event-worthy right now. No row is ever mutated; store_technologies IS
   // the event log.
-  static async record(db: Kysely<Database>, storeId: string, technologies: DetectedTechnology[]): Promise<void> {
+  static async record(
+    db: Kysely<Database>,
+    storeId: string,
+    technologies: DetectedTechnology[],
+  ): Promise<{ name: string; category: string | null; eventType: TechnologyEventType }[]> {
     const latestByName = await StoreTechnologyRepository.latestRowsByName(db, storeId);
     const detectedNames = new Set(technologies.map((tech) => tech.name));
 
@@ -51,12 +77,14 @@ export class StoreTechnologyRepository {
       }
     }
 
-    if (toInsert.length === 0) return;
+    if (toInsert.length === 0) return [];
 
     await db
       .insertInto("store_technologies")
       .values(toInsert.map((event) => ({ store_id: storeId, name: event.name, category: event.category, event_type: event.eventType })))
       .execute();
+
+    return toInsert;
   }
 
   private static async latestRowsByName(db: Kysely<Database>, storeId: string) {

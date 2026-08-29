@@ -52,4 +52,25 @@ export class StoreRepository {
       .onConflict((oc) => oc.column("domain").doNothing())
       .execute();
   }
+
+  static async searchByText(db: Kysely<Database>, query: string, limit = 25): Promise<Store[]> {
+    const pattern = `%${query}%`;
+    const rows = await db
+      .selectFrom("stores")
+      .selectAll()
+      .where((eb) => eb.or([eb("domain", "ilike", pattern), eb("name", "ilike", pattern)]))
+      .orderBy("domain")
+      .limit(limit)
+      .execute();
+
+    return rows.map((row) => Store.fromRow(row));
+  }
+
+  // Hydrates stores that matched a search only via technology, not text.
+  static async getByIds(db: Kysely<Database>, ids: string[]): Promise<Store[]> {
+    if (ids.length === 0) return [];
+
+    const rows = await db.selectFrom("stores").selectAll().where("id", "in", ids).execute();
+    return rows.map((row) => Store.fromRow(row));
+  }
 }

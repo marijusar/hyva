@@ -25,21 +25,46 @@ const technologyEventSchema = z.object({
   created_at: z.string(),
 });
 
-const subscriptionDetailSchema = subscriptionSchema.extend({
+const storeProfileSchema = subscriptionSchema.extend({
   technology_events: z.array(technologyEventSchema),
+  is_subscribed: z.boolean(),
 });
+
+const storeSearchResultSchema = z.object({
+  id: z.string(),
+  domain: z.string(),
+  name: z.string().nullable(),
+  matched_technologies: z.array(z.string()),
+  is_subscribed: z.boolean(),
+});
+
+const subscribeResponseSchema = z.object({ id: z.string(), domain: z.string() });
+const unsubscribeResponseSchema = z.object({ message: z.string() });
 
 export type Technology = z.infer<typeof technologySchema>;
 export type Subscription = z.infer<typeof subscriptionSchema>;
 export type TechnologyEvent = z.infer<typeof technologyEventSchema>;
-export type SubscriptionDetail = z.infer<typeof subscriptionDetailSchema>;
+export type StoreProfile = z.infer<typeof storeProfileSchema>;
+export type StoreSearchResult = z.infer<typeof storeSearchResultSchema>;
 
 export class StoreServer {
   static async listSubscriptions(): Promise<HttpResult<Subscription[]>> {
     return ServerHttp.get("/subscriptions", z.array(subscriptionSchema));
   }
 
-  static async getSubscription(storeId: string): Promise<HttpResult<SubscriptionDetail>> {
-    return ServerHttp.get(`/subscriptions/${storeId}`, subscriptionDetailSchema);
+  static async getStoreProfile(storeId: string): Promise<HttpResult<StoreProfile>> {
+    return ServerHttp.get(`/stores/${storeId}`, storeProfileSchema);
+  }
+
+  static async search(query: string): Promise<HttpResult<StoreSearchResult[]>> {
+    return ServerHttp.get(`/stores/search?q=${encodeURIComponent(query)}`, z.array(storeSearchResultSchema));
+  }
+
+  static async subscribe(domain: string): Promise<HttpResult<{ id: string; domain: string }>> {
+    return ServerHttp.post("/subscriptions", { domain }, subscribeResponseSchema);
+  }
+
+  static async unsubscribe(storeId: string): Promise<HttpResult<{ message: string }>> {
+    return ServerHttp.delete(`/subscriptions/${storeId}`, unsubscribeResponseSchema);
   }
 }

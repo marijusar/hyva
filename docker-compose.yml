@@ -81,6 +81,27 @@ services:
     networks:
       - hyva-network
 
+  backend-worker-technology-events:
+    image: node:26-alpine
+    container_name: hyva-backend-worker-technology-events-dev
+    working_dir: /workspace
+    command: sh -c "npm install -g pnpm@10.5.2 && pnpm --filter backend worker:technology-events"
+    volumes:
+      - .:/workspace
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/hyva_dev
+      RABBITMQ_URL: amqp://hyva:hyva@rabbitmq:5672
+      TECHNOLOGY_EVENT_WORKER_CONCURRENCY: "5"
+      LOG_LEVEL: debug
+      LOG_FORMAT: pretty
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - hyva-network
+
   frontend:
     image: node:26-alpine
     container_name: hyva-frontend-dev
