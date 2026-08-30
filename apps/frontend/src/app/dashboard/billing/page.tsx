@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { redirectToBillingPortal } from "@/lib/actions/billing";
 import { BillingServer } from "@/lib/http/billing-server";
+import { CheckoutPending } from "./checkout-pending";
 
-export default async function BillingPage() {
+export default async function BillingPage({ searchParams }: PageProps<"/dashboard/billing">) {
   const subscriptionRes = await BillingServer.getCurrentSubscription();
   if (subscriptionRes.status === 401) redirect("/login");
 
   const subscription = subscriptionRes.data;
+  const params = await searchParams;
 
   if (subscription) {
     return (
@@ -31,6 +33,15 @@ export default async function BillingPage() {
             </form>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (params.checkout === "success") {
+    return (
+      <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-6 p-6">
+        <h1 className="text-2xl font-semibold">Billing</h1>
+        <CheckoutPending />
       </div>
     );
   }
