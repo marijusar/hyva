@@ -59,6 +59,16 @@ export class StoreSubscriptionRepository {
     return row ? Store.fromRow(row) : undefined;
   }
 
+  static async getCountForUser(db: Kysely<Database>, userId: string): Promise<number> {
+    const row = await db
+      .selectFrom("store_subscriptions")
+      .select(({ fn }) => fn.countAll().as("count"))
+      .where("user_id", "=", userId)
+      .executeTakeFirstOrThrow();
+
+    return Number(row.count);
+  }
+
   // Batch version of getSubscribedStore, for annotating a result list.
   static async getSubscribedStoreIds(db: Kysely<Database>, userId: string, storeIds: string[]): Promise<Set<string>> {
     if (storeIds.length === 0) return new Set();

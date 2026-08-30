@@ -13,6 +13,7 @@
     "db:migrate": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json -f && node --env-file-if-exists=.env dist/db/migrate.js",
     "sync:technologies": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json -f && node --env-file-if-exists=.env dist/scripts/sync-technologies.js",
     "sync:technology-catalog": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json -f && node --env-file-if-exists=.env dist/scripts/sync-technology-catalog.js",
+    "sync:plans": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json -f && node --env-file-if-exists=.env dist/scripts/sync-plans.js",
     "worker:homepage": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json -f && (tsc -p tsconfig.build.json --watch --preserveWatchOutput &) && (tsc-alias -p tsconfig.build.json -f --watch &) && node --watch --env-file-if-exists=.env dist/workers/homepage-worker.js",
     "worker:technology-events": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json -f && (tsc -p tsconfig.build.json --watch --preserveWatchOutput &) && (tsc-alias -p tsconfig.build.json -f --watch &) && node --watch --env-file-if-exists=.env dist/workers/technology-event-worker.js",
     "crawl:orchestrate": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json -f && node --env-file-if-exists=.env dist/scripts/orchestrate-crawl.js",
@@ -30,6 +31,7 @@
     "kysely": "^0.29.5",
     "pg": "^8.23.0",
     "pino": "^10.3.1",
+    "stripe": "^22.6.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

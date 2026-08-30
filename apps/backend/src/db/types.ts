@@ -66,6 +66,49 @@ export interface UserSessionsTable {
   last_used_at: string | null;
 }
 
+export interface PlansTable {
+  id: Generated<string>;
+  slug: string;
+  name: string;
+  stripe_price_id: string | null;
+  monthly_price_cents: number;
+  is_active: Generated<boolean>;
+  sort_order_index: Generated<number>;
+  created_at: Generated<string>;
+  updated_at: Generated<string>;
+}
+
+export interface PlanLimitsTable {
+  id: Generated<string>;
+  plan_id: string;
+  resource_key: string;
+  max_count: number | null;
+}
+
+export interface BillingCustomersTable {
+  id: Generated<string>;
+  user_id: string;
+  stripe_customer_id: string;
+  created_at: Generated<string>;
+}
+
+export interface BillingSubscriptionsTable {
+  id: Generated<string>;
+  user_id: string;
+  plan_id: string;
+  stripe_subscription_id: string;
+  status: string;
+  next_payment_at: string;
+  created_at: Generated<string>;
+  updated_at: Generated<string>;
+}
+
+export interface BillingWebhookEventsTable {
+  id: string;
+  type: string;
+  created_at: Generated<string>;
+}
+
 export interface Database {
   stores: StoresTable;
   store_crawls: StoreCrawlsTable;
@@ -75,4 +118,9 @@ export interface Database {
   technologies: TechnologiesTable;
   users: UsersTable;
   user_sessions: UserSessionsTable;
+  plans: PlansTable;
+  plan_limits: PlanLimitsTable;
+  billing_customers: BillingCustomersTable;
+  billing_subscriptions: BillingSubscriptionsTable;
+  billing_webhook_events: BillingWebhookEventsTable;
 }

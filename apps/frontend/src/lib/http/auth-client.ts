@@ -17,8 +17,8 @@ export class AuthClient {
     });
     const json = await res.json().catch(() => null);
     if (!res.ok) {
-      return { ok: false, status: res.status, data: null, error: errorBodySchema.safeParse(json).data?.error ?? null };
+      return { ok: false, status: res.status, data: null, error: errorBodySchema.safeParse(json).data?.error ?? null, code: null };
     }
-    return { ok: true, status: res.status, data: logoutResponseSchema.parse(json), error: null };
+    return { ok: true, status: res.status, data: logoutResponseSchema.parse(json), error: null, code: null };
   }
 }

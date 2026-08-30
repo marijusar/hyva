@@ -54,6 +54,10 @@ services:
       REFRESH_TOKEN_TTL_MS: "2592000000"
       LOG_LEVEL: debug
       LOG_FORMAT: pretty
+      # Placeholders — replace with real Stripe test-mode keys to exercise checkout/webhooks.
+      STRIPE_SECRET_KEY: sk_test_placeholder
+      STRIPE_WEBHOOK_SECRET: whsec_placeholder
+      FRONTEND_URL: http://localhost:3000
     depends_on:
       postgres:
         condition: service_healthy
