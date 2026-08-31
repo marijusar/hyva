@@ -73,7 +73,6 @@ export interface PlansTable {
   stripe_price_id: string | null;
   monthly_price_cents: number;
   is_active: Generated<boolean>;
-  sort_order_index: Generated<number>;
   created_at: Generated<string>;
   updated_at: Generated<string>;
 }

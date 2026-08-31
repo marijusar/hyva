@@ -9,11 +9,7 @@ export class BillingCustomer {
     public readonly createdAt: Date,
   ) {}
 
-  static fromRow(row: Selectable<BillingCustomersTable>): BillingCustomer;
-  static fromRow(row: Selectable<BillingCustomersTable> | undefined): BillingCustomer | undefined;
-  static fromRow(row: Selectable<BillingCustomersTable> | undefined): BillingCustomer | undefined {
-    if (!row) return undefined;
-
+  static fromRow(row: Selectable<BillingCustomersTable>): BillingCustomer {
     return new BillingCustomer(row.id, row.user_id, row.stripe_customer_id, new Date(row.created_at));
   }
 }

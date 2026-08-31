@@ -5,6 +5,9 @@ import { BillingCustomer } from "./billing-customer.ts";
 export class BillingCustomerRepository {
   static async getByUserId(db: Kysely<Database>, userId: string): Promise<BillingCustomer | undefined> {
     const row = await db.selectFrom("billing_customers").selectAll().where("user_id", "=", userId).executeTakeFirst();
+    if (!row) {
+      return undefined;
+    }
     return BillingCustomer.fromRow(row);
   }
 
@@ -17,6 +20,9 @@ export class BillingCustomerRepository {
       .selectAll()
       .where("stripe_customer_id", "=", stripeCustomerId)
       .executeTakeFirst();
+    if (!row) {
+      return undefined;
+    }
     return BillingCustomer.fromRow(row);
   }
 

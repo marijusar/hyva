@@ -24,6 +24,9 @@ export class BillingSubscriptionRepository {
       .orderBy("next_payment_at", "desc")
       .executeTakeFirst();
 
+    if (!row) {
+      return undefined;
+    }
     return BillingSubscription.fromRow(row);
   }
 
@@ -37,6 +40,9 @@ export class BillingSubscriptionRepository {
       .where("stripe_subscription_id", "=", stripeSubscriptionId)
       .executeTakeFirst();
 
+    if (!row) {
+      return undefined;
+    }
     return BillingSubscription.fromRow(row);
   }
 

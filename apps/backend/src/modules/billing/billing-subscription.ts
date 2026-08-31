@@ -13,11 +13,7 @@ export class BillingSubscription {
     public readonly updatedAt: Date,
   ) {}
 
-  static fromRow(row: Selectable<BillingSubscriptionsTable>): BillingSubscription;
-  static fromRow(row: Selectable<BillingSubscriptionsTable> | undefined): BillingSubscription | undefined;
-  static fromRow(row: Selectable<BillingSubscriptionsTable> | undefined): BillingSubscription | undefined {
-    if (!row) return undefined;
-
+  static fromRow(row: Selectable<BillingSubscriptionsTable>): BillingSubscription {
     return new BillingSubscription(
       row.id,
       row.user_id,

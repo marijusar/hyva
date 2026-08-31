@@ -8,7 +8,6 @@ export const upsertPlanSchema = z.object({
   name: z.string(),
   stripePriceId: z.string(),
   monthlyPriceCents: z.number().int().positive(),
-  sortOrderIndex: z.number().int(),
 });
 
 export type UpsertPlan = z.infer<typeof upsertPlanSchema>;
@@ -19,7 +18,7 @@ export class PlanRepository {
       .selectFrom("plans")
       .selectAll()
       .where("is_active", "=", true)
-      .orderBy("sort_order_index", "asc")
+      .orderBy("monthly_price_cents", "asc")
       .execute();
 
     return rows.map((row) => Plan.fromRow(row));
@@ -27,11 +26,17 @@ export class PlanRepository {
 
   static async getBySlug(db: Kysely<Database>, slug: string): Promise<Plan | undefined> {
     const row = await db.selectFrom("plans").selectAll().where("slug", "=", slug).executeTakeFirst();
+    if (!row) {
+      return undefined;
+    }
     return Plan.fromRow(row);
   }
 
   static async getById(db: Kysely<Database>, id: string): Promise<Plan | undefined> {
     const row = await db.selectFrom("plans").selectAll().where("id", "=", id).executeTakeFirst();
+    if (!row) {
+      return undefined;
+    }
     return Plan.fromRow(row);
   }
 
@@ -41,6 +46,9 @@ export class PlanRepository {
       .selectAll()
       .where("stripe_price_id", "=", stripePriceId)
       .executeTakeFirst();
+    if (!row) {
+      return undefined;
+    }
     return Plan.fromRow(row);
   }
 
@@ -54,14 +62,12 @@ export class PlanRepository {
         name: plan.name,
         stripe_price_id: plan.stripePriceId,
         monthly_price_cents: plan.monthlyPriceCents,
-        sort_order_index: plan.sortOrderIndex,
       })
       .onConflict((oc) =>
         oc.column("slug").doUpdateSet({
           name: plan.name,
           stripe_price_id: plan.stripePriceId,
           monthly_price_cents: plan.monthlyPriceCents,
-          sort_order_index: plan.sortOrderIndex,
           updated_at: new Date().toISOString(),
         }),
       )

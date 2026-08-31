@@ -96,7 +96,7 @@ export class BillingHandlers {
     const event = PaymentServiceProvider.verifyWebhookEvent(rawBody, signature);
     if (!event) return c.json({ error: "Invalid signature" }, 400);
 
-    await BillingWebhookProcessor.process(c.get("db"), event);
+    await BillingWebhookProcessor.process(c.get("db"), c.get("logger"), event);
 
     return c.json({ received: true });
   }
