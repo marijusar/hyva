@@ -1,0 +1,105 @@
+x-backend: &backend
+  image: ${BACKEND_IMAGE:-ghcr.io/marijusar/hyva-backend:latest}
+  env_file: .env
+  restart: unless-stopped
+  networks:
+    - hyva-network
+  depends_on:
+    postgres:
+      condition: service_healthy
+    rabbitmq:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: hyva-postgres
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hyva-network
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: hyva-rabbitmq
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      # management UI stays on the loopback only — reach it via
+      # `ssh -L 15672:localhost:15672 <host>`, never exposed through traefik.
+      - "127.0.0.1:15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hyva-network
+
+  backend:
+    <<: *backend
+    container_name: hyva-backend
+    command: ["node", "dist/index.js"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.routers.backend.middlewares=backend-auth,backend-allowlist"
+      - "traefik.http.middlewares.backend-auth.basicauth.usersfile=/etc/traefik/htpasswd"
+      - "traefik.http.middlewares.backend-allowlist.ipallowlist.sourcerange=${ALLOWED_IP}/32"
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
+
+  backend-worker-homepage:
+    <<: *backend
+    container_name: hyva-backend-worker-homepage
+    command: ["node", "dist/workers/homepage-worker.js"]
+
+  backend-worker-technology-events:
+    <<: *backend
+    container_name: hyva-backend-worker-technology-events
+    command: ["node", "dist/workers/technology-event-worker.js"]
+
+  traefik:
+    image: traefik:v3.3
+    container_name: hyva-traefik
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # htpasswd file, generated on the server with:
+      #   htpasswd -cB traefik/htpasswd <username>
+      # Never committed — path is gitignored.
+      - ./traefik/htpasswd:/etc/traefik/htpasswd:ro
+    depends_on:
+      - backend
+    networks:
+      - hyva-network
+
+volumes:
+  postgres-data:
+  rabbitmq-data:
+
+networks:
+  hyva-network:
+    driver: bridge

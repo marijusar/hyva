@@ -8,6 +8,9 @@ node_modules/
 .env.local
 .env.production
 
+# server-side secrets, never committed
+/traefik/htpasswd
+
 # misc
 .DS_Store
 *.log
