@@ -5,8 +5,10 @@ import { StoreRepository } from "#src/modules/store/repository";
 import { StoreCrawlRepository } from "#src/modules/store/crawl-repository";
 import { StoreMetadataRepository } from "#src/modules/store/metadata-repository";
 import { StoreTechnologyRepository } from "#src/modules/store/technology-repository";
+import { UserRepository } from "#src/modules/user/repository";
 import { TestDatabase } from "./utils/database.ts";
 import { registerAndLogin } from "./utils/auth.ts";
+import { BillingSeeder } from "./utils/billing.ts";
 
 describe("store profile", () => {
   const testDb = new TestDatabase();
@@ -27,6 +29,8 @@ describe("store profile", () => {
   it("404s for a nonexistent store", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
     const cookie = await registerAndLogin(app, "profile-missing@hyva.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "profile-missing@hyva.dev");
+    await BillingSeeder.activePlan(testDb.db, user!.id);
 
     const res = await app.request("/stores/00000000-0000-0000-0000-000000000000", { headers: { cookie } });
     expect(res.status).toBe(404);
@@ -35,6 +39,8 @@ describe("store profile", () => {
   it("returns is_subscribed: false for a store the caller does not follow", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
     const cookie = await registerAndLogin(app, "profile-not-following@hyva.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "profile-not-following@hyva.dev");
+    await BillingSeeder.activePlan(testDb.db, user!.id);
     const store = await StoreRepository.create(testDb.db, { domain: "not-following.myshopify.com", name: null });
 
     const res = await app.request(`/stores/${store.id}`, { headers: { cookie } });
@@ -46,6 +52,8 @@ describe("store profile", () => {
   it("returns is_subscribed: true once the caller follows the store", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
     const cookie = await registerAndLogin(app, "profile-following@hyva.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "profile-following@hyva.dev");
+    await BillingSeeder.activePlan(testDb.db, user!.id);
     const store = await StoreRepository.create(testDb.db, { domain: "following.myshopify.com", name: null });
 
     await app.request("/subscriptions", {
@@ -62,6 +70,8 @@ describe("store profile", () => {
   it("includes crawl status, metadata, active technologies, and technology history", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
     const cookie = await registerAndLogin(app, "profile-full@hyva.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "profile-full@hyva.dev");
+    await BillingSeeder.activePlan(testDb.db, user!.id);
     const store = await StoreRepository.create(testDb.db, { domain: "profile-full.myshopify.com", name: null });
     await StoreCrawlRepository.record(testDb.db, store.id, "active");
     await StoreMetadataRepository.record(testDb.db, store.id, "shopify", "A profiled store");
@@ -85,6 +95,10 @@ describe("store profile", () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
     const cookieA = await registerAndLogin(app, "profile-owner@hyva.dev");
     const cookieB = await registerAndLogin(app, "profile-viewer@hyva.dev");
+    const userA = await UserRepository.getByEmail(testDb.db, "profile-owner@hyva.dev");
+    const userB = await UserRepository.getByEmail(testDb.db, "profile-viewer@hyva.dev");
+    await BillingSeeder.activePlan(testDb.db, userA!.id);
+    await BillingSeeder.activePlan(testDb.db, userB!.id);
     const store = await StoreRepository.create(testDb.db, { domain: "shared-profile.myshopify.com", name: null });
     await StoreTechnologyRepository.record(testDb.db, store.id, [{ name: "Klaviyo", category: "email" }]);
 

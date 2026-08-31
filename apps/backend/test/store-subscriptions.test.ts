@@ -5,8 +5,10 @@ import { StoreRepository } from "#src/modules/store/repository";
 import { StoreCrawlRepository } from "#src/modules/store/crawl-repository";
 import { StoreMetadataRepository } from "#src/modules/store/metadata-repository";
 import { StoreTechnologyRepository } from "#src/modules/store/technology-repository";
+import { UserRepository } from "#src/modules/user/repository";
 import { TestDatabase } from "./utils/database.ts";
 import { registerAndLogin } from "./utils/auth.ts";
+import { BillingSeeder } from "./utils/billing.ts";
 
 describe("store subscriptions", () => {
   const testDb = new TestDatabase();
@@ -32,6 +34,8 @@ describe("store subscriptions", () => {
   it("subscribes to a never-seen domain (auto-creates the store), then unsubscribes", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
     const cookie = await registerAndLogin(app, "subscriber@hyva.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "subscriber@hyva.dev");
+    await BillingSeeder.activePlan(testDb.db, user!.id);
 
     const subscribeRes = await app.request("/subscriptions", {
       method: "POST",
@@ -63,6 +67,8 @@ describe("store subscriptions", () => {
   it("subscribing twice is idempotent", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
     const cookie = await registerAndLogin(app, "twice@hyva.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "twice@hyva.dev");
+    await BillingSeeder.activePlan(testDb.db, user!.id);
 
     await app.request("/subscriptions", {
       method: "POST",
@@ -82,6 +88,8 @@ describe("store subscriptions", () => {
   it("includes crawl status, metadata, and technologies for a subscribed store", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
     const cookie = await registerAndLogin(app, "crawled@hyva.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "crawled@hyva.dev");
+    await BillingSeeder.activePlan(testDb.db, user!.id);
 
     const store = await StoreRepository.create(testDb.db, { domain: "crawled.myshopify.com", name: null });
     await StoreCrawlRepository.record(testDb.db, store.id, "active");
@@ -107,6 +115,10 @@ describe("store subscriptions", () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
     const cookieA = await registerAndLogin(app, "user-a@hyva.dev");
     const cookieB = await registerAndLogin(app, "user-b@hyva.dev");
+    const userA = await UserRepository.getByEmail(testDb.db, "user-a@hyva.dev");
+    const userB = await UserRepository.getByEmail(testDb.db, "user-b@hyva.dev");
+    await BillingSeeder.activePlan(testDb.db, userA!.id);
+    await BillingSeeder.activePlan(testDb.db, userB!.id);
 
     await app.request("/subscriptions", {
       method: "POST",
