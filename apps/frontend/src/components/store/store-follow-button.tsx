@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { followStore, unfollowStore } from "@/lib/actions/store-subscription";
@@ -36,7 +37,14 @@ export function StoreFollowButton({
         {isPending ? "…" : isSubscribed ? "Unsubscribe" : "Subscribe"}
       </Button>
       {state.status === ServerActionStatuses.error && state.error ? (
-        <p className="text-sm text-destructive">{state.error}</p>
+        <p className="text-sm text-destructive">
+          {state.error}
+          {state.code === "LIMIT_EXCEEDED" ? (
+            <Link href="/dashboard/billing" className="ml-1 underline underline-offset-4">
+              Upgrade
+            </Link>
+          ) : null}
+        </p>
       ) : null}
     </form>
   );

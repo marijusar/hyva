@@ -8,6 +8,7 @@ type ServerActionResponseParams<T> = {
   data: T;
   error: string | null;
   status: keyof typeof ServerActionStatuses;
+  code?: string | null;
 };
 
 export type ServerActionResponsePayload<T> = ServerActionResponseParams<T>;

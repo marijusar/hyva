@@ -3,11 +3,20 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { register } from "./actions";
-import { createDefaultServerActionResponse, ServerActionStatuses } from "@/lib/responses/server-action-response";
+import {
+  createDefaultServerActionResponse,
+  ServerActionStatuses,
+} from "@/lib/responses/server-action-response";
 
 const initialState = createDefaultServerActionResponse(null);
 
@@ -19,13 +28,19 @@ export function RegisterForm() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Create an account</CardTitle>
-          <CardDescription>Start tracking Shopify competitors.</CardDescription>
+          <CardDescription>Start tracking Shopify stores.</CardDescription>
         </CardHeader>
         <CardContent>
           <form action={formAction} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" autoComplete="email" required />
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+              />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="password">Password</Label>

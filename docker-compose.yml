@@ -54,6 +54,9 @@ services:
       REFRESH_TOKEN_TTL_MS: "2592000000"
       LOG_LEVEL: debug
       LOG_FORMAT: pretty
+      FRONTEND_URL: http://localhost:3000
+      # STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET intentionally not set here —
+      # sourced from apps/backend/.env (gitignored) via --env-file-if-exists.
     depends_on:
       postgres:
         condition: service_healthy

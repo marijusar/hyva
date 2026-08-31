@@ -5,6 +5,7 @@ import type { Database } from "./db/types.ts";
 import type { Logger } from "./logging/logger.ts";
 import { UserRoutes } from "./modules/user/routes.ts";
 import { StoreRoutes } from "./modules/store/routes.ts";
+import { BillingRoutes } from "./modules/billing/routes.ts";
 
 export type AppEnv = {
   Variables: {
@@ -47,6 +48,7 @@ export class AppFactory {
 
     UserRoutes.mount(app);
     StoreRoutes.mount(app);
+    BillingRoutes.mount(app);
 
     return app;
   }

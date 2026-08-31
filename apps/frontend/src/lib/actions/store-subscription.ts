@@ -7,7 +7,12 @@ import { ServerActionResponse, ServerActionResponsePayload, ServerActionStatuses
 export async function followStore(domain: string): Promise<ServerActionResponsePayload<null>> {
   const res = await StoreServer.subscribe(domain);
   if (!res.ok) {
-    return ServerActionResponse.create({ data: null, error: res.error ?? "Follow failed", status: ServerActionStatuses.error });
+    return ServerActionResponse.create({
+      data: null,
+      error: res.error ?? "Follow failed",
+      status: ServerActionStatuses.error,
+      code: res.code,
+    });
   }
   revalidatePath("/dashboard");
   return ServerActionResponse.create({ data: null, error: null, status: ServerActionStatuses.success });

@@ -3,7 +3,7 @@ import { parse as parseSetCookies } from "set-cookie-parser";
 import { z } from "zod";
 import type { HttpResult } from "./types";
 
-const errorBodySchema = z.object({ error: z.string() }).partial();
+const errorBodySchema = z.object({ error: z.string(), code: z.string() }).partial();
 
 // Fetch mechanics shared by every server-side HTTP call class in this
 // directory (e.g. AuthServer). Not meant to be called directly from
@@ -57,9 +57,10 @@ export class ServerHttp {
   private static async toResult<T>(res: Response, schema: z.ZodType<T>): Promise<HttpResult<T>> {
     const json = await res.json().catch(() => null);
     if (!res.ok) {
-      return { ok: false, status: res.status, data: null, error: errorBodySchema.safeParse(json).data?.error ?? null };
+      const parsed = errorBodySchema.safeParse(json).data;
+      return { ok: false, status: res.status, data: null, error: parsed?.error ?? null, code: parsed?.code ?? null };
     }
-    return { ok: true, status: res.status, data: schema.parse(json), error: null };
+    return { ok: true, status: res.status, data: schema.parse(json), error: null, code: null };
   }
 
   private static async forwardSetCookies(res: Response): Promise<void> {
