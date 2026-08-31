@@ -61,7 +61,7 @@ describe("StoreCrawler", () => {
     const publisher = new FakeTechnologyEventPublisher();
     const crawler = new StoreCrawler(
       matcher,
-      new FakePageFetcher({ html: "<html></html>", statusCode: 500 }),
+      new FakePageFetcher({ html: "<html></html>", statusCode: 500, cfMitigated: null }),
       publisher,
       logger,
     );
@@ -70,6 +70,38 @@ describe("StoreCrawler", () => {
 
     const crawls = await testDb.db.selectFrom("store_crawls").selectAll().where("store_id", "=", store.id).execute();
     expect(crawls.map((c) => c.status)).toEqual(["error"]);
+  });
+
+  it("records a blocked status when Cloudflare's cf-mitigated header is present, even on a 200", async () => {
+    const store = await StoreRepository.create(testDb.db, { domain: "cf-header.myshopify.com", name: null });
+    const publisher = new FakeTechnologyEventPublisher();
+    const crawler = new StoreCrawler(
+      matcher,
+      new FakePageFetcher({ html: "<html></html>", statusCode: 200, cfMitigated: "challenge" }),
+      publisher,
+      logger,
+    );
+
+    await crawler.crawlHomepage(testDb.db, store);
+
+    const crawls = await testDb.db.selectFrom("store_crawls").selectAll().where("store_id", "=", store.id).execute();
+    expect(crawls.map((c) => c.status)).toEqual(["blocked"]);
+  });
+
+  it("records a blocked status when the HTML matches a Cloudflare challenge marker without the header", async () => {
+    const store = await StoreRepository.create(testDb.db, { domain: "cf-marker.myshopify.com", name: null });
+    const publisher = new FakeTechnologyEventPublisher();
+    const crawler = new StoreCrawler(
+      matcher,
+      new FakePageFetcher({ html: "<html><body>Just a moment...</body></html>", statusCode: 403, cfMitigated: null }),
+      publisher,
+      logger,
+    );
+
+    await crawler.crawlHomepage(testDb.db, store);
+
+    const crawls = await testDb.db.selectFrom("store_crawls").selectAll().where("store_id", "=", store.id).execute();
+    expect(crawls.map((c) => c.status)).toEqual(["blocked"]);
   });
 
   it("detects platform, technologies, and homepage text for an active Shopify page, and publishes the technology events", async () => {
@@ -85,7 +117,12 @@ describe("StoreCrawler", () => {
       </html>
     `;
     const publisher = new FakeTechnologyEventPublisher();
-    const crawler = new StoreCrawler(matcher, new FakePageFetcher({ html, statusCode: 200 }), publisher, logger);
+    const crawler = new StoreCrawler(
+      matcher,
+      new FakePageFetcher({ html, statusCode: 200, cfMitigated: null }),
+      publisher,
+      logger,
+    );
 
     await crawler.crawlHomepage(testDb.db, store);
 

@@ -4,6 +4,7 @@ import type { Store } from "@/modules/store/store";
 import { StoreCrawlRepository } from "@/modules/store/crawl-repository";
 import { StoreMetadataRepository } from "@/modules/store/metadata-repository";
 import { StoreTechnologyRepository } from "@/modules/store/technology-repository";
+import { CloudflareChallengeDetector } from "./cloudflare-challenge-detector.ts";
 import { HomepageTextExtractor } from "./homepage-text-extractor.ts";
 import type { FetchedPage, PageFetcher } from "./page-fetcher.ts";
 import type { TechnologyMatcher } from "./technology-matcher.ts";
@@ -56,6 +57,7 @@ export class StoreCrawler {
 
   private static statusFor(page: FetchedPage | null): string {
     if (!page) return "dead";
+    if (CloudflareChallengeDetector.isChallenge(page)) return "blocked";
     return page.statusCode >= 200 && page.statusCode < 400 ? "active" : "error";
   }
 }

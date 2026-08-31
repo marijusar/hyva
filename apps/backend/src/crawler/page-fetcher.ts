@@ -7,6 +7,9 @@ const TIMEOUT_SECONDS = 10;
 export const fetchedPageSchema = z.object({
   html: z.string(),
   statusCode: z.number().int(),
+  // Cloudflare's official signal for a challenge/managed-challenge response —
+  // null on every normal response. See CloudflareChallengeDetector.
+  cfMitigated: z.string().nullable(),
 });
 
 export type FetchedPage = z.infer<typeof fetchedPageSchema>;
@@ -31,7 +34,11 @@ export class HttpPageFetcher implements PageFetcher {
         impersonate: "safari",
         timeout: TIMEOUT_SECONDS,
       });
-      const page = fetchedPageSchema.parse({ html: response.text, statusCode: response.status });
+      const page = fetchedPageSchema.parse({
+        html: response.text,
+        statusCode: response.status,
+        cfMitigated: response.headers.get("cf-mitigated"),
+      });
       this.logger.info({ url, statusCode: page.statusCode, durationMs: Date.now() - startedAt }, "fetched page");
       return page;
     } catch (error) {

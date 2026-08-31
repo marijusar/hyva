@@ -14,7 +14,6 @@ export class BillingSeeder {
       name: "Test plan",
       stripePriceId: `price_test_${crypto.randomUUID()}`,
       monthlyPriceCents: 1900,
-      sortOrderIndex: 0,
     });
 
     await BillingCustomerRepository.create(db, userId, `cus_test_${crypto.randomUUID()}`);
