@@ -19,7 +19,10 @@ export class BillingWebhookProcessor {
 
       const error = await BillingWebhookProcessor.route(trx, event);
       if (error) {
-        logger.warn({ eventId: event.id, eventType: event.type, error }, "billing webhook event not applied");
+        logger.error({ eventId: event.id, eventType: event.type, error }, "billing webhook event not applied");
+        // Roll back the idempotency row too — an unprocessed event must stay
+        // unprocessed so Stripe's retry can pick it up again.
+        throw new Error(`Failed to process billing webhook event ${event.id}: ${error}`);
       }
     });
   }
