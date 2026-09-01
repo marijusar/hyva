@@ -21,6 +21,15 @@ const rawCategorySchema = z.object({
 const technologiesFileSchema = z.record(z.string(), rawTechnologySchema);
 const categoriesFileSchema = z.record(z.string(), rawCategorySchema);
 
+// Upstream `[\s\S]*` patterns rescan the whole document once per matching tag —
+// 19s on a 16.5MB homepage, which freezes the worker's event loop. Each is
+// replaced by the literal it actually keys on; applied after load so
+// `sync:technologies` cannot silently revert them.
+const HTML_PATTERN_OVERRIDES = new Map<string, string[]>([
+  ["Liveinternet", ["//counter\\.yadro\\.ru/hit"]],
+  ["Elm-ui", ["\\.explain > \\.ctr > \\.s"]],
+]);
+
 // One instance per worker process. Loads the vendored fingerprint data
 // (vendor/webappanalyzer/, see NOTICE there for provenance/license) from
 // disk once, caches it in memory for the process lifetime — every crawled
@@ -65,6 +74,19 @@ export class TechnologyFingerprints {
         technologies.set(name, tech);
       }
     }
+    TechnologyFingerprints.applyHtmlPatternOverrides(technologies);
     this.technologies = technologies;
+  }
+
+  private static applyHtmlPatternOverrides(technologies: Map<string, RawTechnology>): void {
+    for (const [name, html] of HTML_PATTERN_OVERRIDES) {
+      const tech = technologies.get(name);
+      if (!tech) {
+        throw new Error(
+          `TechnologyFingerprints: no vendored technology "${name}" to override — drop it from HTML_PATTERN_OVERRIDES`,
+        );
+      }
+      tech.html = html;
+    }
   }
 }
