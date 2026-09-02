@@ -28,6 +28,14 @@ const categoriesFileSchema = z.record(z.string(), rawCategorySchema);
 const HTML_PATTERN_OVERRIDES = new Map<string, string[]>([
   ["Liveinternet", ["//counter\\.yadro\\.ru/hit"]],
   ["Elm-ui", ["\\.explain > \\.ctr > \\.s"]],
+  [
+    "SAP Commerce Cloud",
+    [
+      "<[^>]+/(?:sys_master|hybr|_ui/(?:.*responsive/)?(?:desktop|common(?:/images|/img|/css|ico)?))/",
+      "<script[^>]{0,512}hybris[^>]{0,512}\\.js",
+    ],
+  ],
+  ["Akamai mPulse", ["go-mpulse\\.net/boomerang"]],
 ]);
 
 // One instance per worker process. Loads the vendored fingerprint data
