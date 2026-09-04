@@ -21,21 +21,28 @@ const rawCategorySchema = z.object({
 const technologiesFileSchema = z.record(z.string(), rawTechnologySchema);
 const categoriesFileSchema = z.record(z.string(), rawCategorySchema);
 
-// Upstream `[\s\S]*` patterns rescan the whole document once per matching tag —
-// 19s on a 16.5MB homepage, which freezes the worker's event loop. Each is
-// replaced by the literal it actually keys on; applied after load so
-// `sync:technologies` cannot silently revert them.
-const HTML_PATTERN_OVERRIDES = new Map<string, string[]>([
-  ["Liveinternet", ["//counter\\.yadro\\.ru/hit"]],
-  ["Elm-ui", ["\\.explain > \\.ctr > \\.s"]],
+// Upstream patterns that misfire against real storefronts. Applied after load
+// so `sync:technologies` cannot silently revert them.
+const PATTERN_OVERRIDES = new Map<string, Pick<RawTechnology, "html" | "scriptSrc">>([
+  // `[\s\S]*` patterns rescan the whole document once per matching tag — 19s on
+  // a 16.5MB homepage, which freezes the worker's event loop.
+  ["Liveinternet", { html: ["//counter\\.yadro\\.ru/hit"] }],
+  ["Elm-ui", { html: ["\\.explain > \\.ctr > \\.s"] }],
   [
     "SAP Commerce Cloud",
-    [
-      "<[^>]+/(?:sys_master|hybr|_ui/(?:.*responsive/)?(?:desktop|common(?:/images|/img|/css|ico)?))/",
-      "<script[^>]{0,512}hybris[^>]{0,512}\\.js",
-    ],
+    {
+      html: [
+        "<[^>]+/(?:sys_master|hybr|_ui/(?:.*responsive/)?(?:desktop|common(?:/images|/img|/css|ico)?))/",
+        "<script[^>]{0,512}hybris[^>]{0,512}\\.js",
+      ],
+    },
   ],
-  ["Akamai mPulse", ["go-mpulse\\.net/boomerang"]],
+  ["Akamai mPulse", { html: ["go-mpulse\\.net/boomerang"] }],
+  // Shopify versions extension asset paths, so upstream's fixed
+  // `/product-personalizer/` segment drops the app on every release.
+  ["Product Personalizer", { scriptSrc: ["/product-personalizer(?:-\\d+)?/(?:assets/)?pplr_common\\.js"] }],
+  // `zepto.*\.js` matched the "Zepto Product Personalizer" app's asset, not the library.
+  ["Zepto", { scriptSrc: ["/zepto(?:[-.][\\w.]+)?\\.js"] }],
 ]);
 
 // One instance per worker process. Loads the vendored fingerprint data
@@ -82,19 +89,20 @@ export class TechnologyFingerprints {
         technologies.set(name, tech);
       }
     }
-    TechnologyFingerprints.applyHtmlPatternOverrides(technologies);
+    TechnologyFingerprints.applyPatternOverrides(technologies);
     this.technologies = technologies;
   }
 
-  private static applyHtmlPatternOverrides(technologies: Map<string, RawTechnology>): void {
-    for (const [name, html] of HTML_PATTERN_OVERRIDES) {
+  private static applyPatternOverrides(technologies: Map<string, RawTechnology>): void {
+    for (const [name, patterns] of PATTERN_OVERRIDES) {
       const tech = technologies.get(name);
       if (!tech) {
         throw new Error(
-          `TechnologyFingerprints: no vendored technology "${name}" to override — drop it from HTML_PATTERN_OVERRIDES`,
+          `TechnologyFingerprints: no vendored technology "${name}" to override — drop it from PATTERN_OVERRIDES`,
         );
       }
-      tech.html = html;
+      if (patterns.html) tech.html = patterns.html;
+      if (patterns.scriptSrc) tech.scriptSrc = patterns.scriptSrc;
     }
   }
 }
