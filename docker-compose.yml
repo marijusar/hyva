@@ -22,6 +22,10 @@ services:
   rabbitmq:
     image: rabbitmq:4-management-alpine
     container_name: hyva-rabbitmq-dev
+    # Mnesia writes to /var/lib/rabbitmq/mnesia/rabbit@$HOSTNAME. Without a
+    # pinned hostname a recreated container boots a new, empty node and
+    # orphans the old directory, so durable queues look wiped.
+    hostname: hyva-rabbitmq-dev
     restart: unless-stopped
     ports:
       - "127.0.0.1:5672:5672"
@@ -29,6 +33,8 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: hyva
       RABBITMQ_DEFAULT_PASS: hyva
+    volumes:
+      - rabbitmq-data-dev:/var/lib/rabbitmq
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
@@ -124,6 +130,7 @@ services:
 
 volumes:
   postgres-data-dev:
+  rabbitmq-data-dev:
 
 networks:
   hyva-network:

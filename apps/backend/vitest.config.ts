@@ -23,7 +23,7 @@ export default defineConfig({
       HOMEPAGE_WORKER_CONCURRENCY: "5",
       TECHNOLOGY_EVENT_WORKER_CONCURRENCY: "5",
       CRAWL_BATCH_SIZE: "100",
-      CRAWL_STALE_AFTER_MS: "86400000",
+      CRAWL_STALE_AFTER_MS: "604800000",
       STRIPE_SECRET_KEY: "sk_test_placeholder",
       STRIPE_WEBHOOK_SECRET: "whsec_placeholder",
       FRONTEND_URL: "http://localhost:3000",

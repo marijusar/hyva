@@ -33,6 +33,10 @@ services:
   rabbitmq:
     image: rabbitmq:4-management-alpine
     container_name: hyva-rabbitmq
+    # Mnesia writes to /var/lib/rabbitmq/mnesia/rabbit@$HOSTNAME. Without a
+    # pinned hostname a recreated container boots a new, empty node and
+    # orphans the old directory on the volume, so durable queues look wiped.
+    hostname: hyva-rabbitmq
     restart: unless-stopped
     env_file: .env
     environment:

@@ -21,20 +21,37 @@ export class StoreRepository {
     return Store.fromRow(row);
   }
 
-  static async getById(db: Kysely<Database>, id: string): Promise<Store | undefined> {
-    const row = await db.selectFrom("stores").selectAll().where("id", "=", id).executeTakeFirst();
+  static async getById(
+    db: Kysely<Database>,
+    id: string,
+  ): Promise<Store | undefined> {
+    const row = await db
+      .selectFrom("stores")
+      .selectAll()
+      .where("id", "=", id)
+      .executeTakeFirst();
     return row ? Store.fromRow(row) : undefined;
   }
 
-  static async getByDomain(db: Kysely<Database>, domain: string): Promise<Store | undefined> {
-    const row = await db.selectFrom("stores").selectAll().where("domain", "=", domain).executeTakeFirst();
+  static async getByDomain(
+    db: Kysely<Database>,
+    domain: string,
+  ): Promise<Store | undefined> {
+    const row = await db
+      .selectFrom("stores")
+      .selectAll()
+      .where("domain", "=", domain)
+      .executeTakeFirst();
     return row ? Store.fromRow(row) : undefined;
   }
 
   // Subscribing to a domain we haven't seen yet still creates the store row
   // — it just has no crawl history until the next orchestrator sweep picks
   // it up (getPendingForCrawl finds it via "no store_crawls row yet").
-  static async getOrCreateByDomain(db: Kysely<Database>, domain: string): Promise<Store> {
+  static async getOrCreateByDomain(
+    db: Kysely<Database>,
+    domain: string,
+  ): Promise<Store> {
     const existing = await StoreRepository.getByDomain(db, domain);
     if (existing) return existing;
 
@@ -43,7 +60,10 @@ export class StoreRepository {
 
   // Bulk import — skips domains that already exist rather than overwriting
   // (a re-import shouldn't clobber a store's `name` back to null).
-  static async upsertMany(db: Kysely<Database>, domains: string[]): Promise<void> {
+  static async upsertMany(
+    db: Kysely<Database>,
+    domains: string[],
+  ): Promise<void> {
     if (domains.length === 0) return;
 
     await db
@@ -53,12 +73,18 @@ export class StoreRepository {
       .execute();
   }
 
-  static async searchByText(db: Kysely<Database>, query: string, limit = 25): Promise<Store[]> {
+  static async searchByText(
+    db: Kysely<Database>,
+    query: string,
+    limit = 25,
+  ): Promise<Store[]> {
     const pattern = `%${query}%`;
     const rows = await db
       .selectFrom("stores")
       .selectAll()
-      .where((eb) => eb.or([eb("domain", "ilike", pattern), eb("name", "ilike", pattern)]))
+      .where((eb) =>
+        eb.or([eb("domain", "ilike", pattern), eb("name", "ilike", pattern)]),
+      )
       .orderBy("domain")
       .limit(limit)
       .execute();
@@ -70,7 +96,11 @@ export class StoreRepository {
   static async getByIds(db: Kysely<Database>, ids: string[]): Promise<Store[]> {
     if (ids.length === 0) return [];
 
-    const rows = await db.selectFrom("stores").selectAll().where("id", "in", ids).execute();
+    const rows = await db
+      .selectFrom("stores")
+      .selectAll()
+      .where("id", "in", ids)
+      .execute();
     return rows.map((row) => Store.fromRow(row));
   }
 }
