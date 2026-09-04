@@ -30,8 +30,10 @@ export class StoreCrawler {
     const status = StoreCrawler.statusFor(page);
     await StoreCrawlRepository.record(db, store.id, status);
 
-    if (!page) {
-      this.logger.warn({ storeId: store.id, domain: store.domain }, "homepage crawl marked dead");
+    // Only an active crawl reflects the real storefront — diffing a dead,
+    // blocked, or errored page reports every known technology as removed.
+    if (!page || status !== "active") {
+      this.logger.warn({ storeId: store.id, domain: store.domain, status }, "homepage crawl unusable, skipping diff");
       return;
     }
 

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { StoreRepository } from "#src/modules/store/repository";
+import { StoreTechnologyRepository } from "#src/modules/store/technology-repository";
 import { StoreCrawler } from "#src/crawler/store-crawler";
 import { TechnologyFingerprints } from "#src/crawler/technology-fingerprints";
 import { TechnologyMatcher } from "#src/crawler/technology-matcher";
@@ -70,6 +71,21 @@ describe("StoreCrawler", () => {
 
     const crawls = await testDb.db.selectFrom("store_crawls").selectAll().where("store_id", "=", store.id).execute();
     expect(crawls.map((c) => c.status)).toEqual(["error"]);
+
+    const metadata = await testDb.db
+      .selectFrom("store_metadata")
+      .selectAll()
+      .where("store_id", "=", store.id)
+      .execute();
+    expect(metadata).toHaveLength(0);
+
+    const technologies = await testDb.db
+      .selectFrom("store_technologies")
+      .selectAll()
+      .where("store_id", "=", store.id)
+      .execute();
+    expect(technologies).toHaveLength(0);
+    expect(publisher.published).toEqual([]);
   });
 
   it("records a blocked status when Cloudflare's cf-mitigated header is present, even on a 200", async () => {
@@ -86,6 +102,21 @@ describe("StoreCrawler", () => {
 
     const crawls = await testDb.db.selectFrom("store_crawls").selectAll().where("store_id", "=", store.id).execute();
     expect(crawls.map((c) => c.status)).toEqual(["blocked"]);
+
+    const metadata = await testDb.db
+      .selectFrom("store_metadata")
+      .selectAll()
+      .where("store_id", "=", store.id)
+      .execute();
+    expect(metadata).toHaveLength(0);
+
+    const technologies = await testDb.db
+      .selectFrom("store_technologies")
+      .selectAll()
+      .where("store_id", "=", store.id)
+      .execute();
+    expect(technologies).toHaveLength(0);
+    expect(publisher.published).toEqual([]);
   });
 
   it("records a blocked status when the HTML matches a Cloudflare challenge marker without the header", async () => {
@@ -102,6 +133,54 @@ describe("StoreCrawler", () => {
 
     const crawls = await testDb.db.selectFrom("store_crawls").selectAll().where("store_id", "=", store.id).execute();
     expect(crawls.map((c) => c.status)).toEqual(["blocked"]);
+
+    const technologies = await testDb.db
+      .selectFrom("store_technologies")
+      .selectAll()
+      .where("store_id", "=", store.id)
+      .execute();
+    expect(technologies).toHaveLength(0);
+    expect(publisher.published).toEqual([]);
+  });
+
+  it("keeps technologies active when a previously active store returns a blocked page", async () => {
+    const store = await StoreRepository.create(testDb.db, { domain: "flapping.myshopify.com", name: null });
+    const html = `<html><head><script src="https://cdn.shopify.com/s/files/foo.js"></script></head></html>`;
+    const publisher = new FakeTechnologyEventPublisher();
+
+    await new StoreCrawler(
+      matcher,
+      new FakePageFetcher({ html, statusCode: 200, cfMitigated: null }),
+      publisher,
+      logger,
+    ).crawlHomepage(testDb.db, store);
+
+    await new StoreCrawler(
+      matcher,
+      new FakePageFetcher({ html: "<html><body>Just a moment...</body></html>", statusCode: 200, cfMitigated: "challenge" }),
+      publisher,
+      logger,
+    ).crawlHomepage(testDb.db, store);
+
+    const crawls = await testDb.db
+      .selectFrom("store_crawls")
+      .selectAll()
+      .where("store_id", "=", store.id)
+      .orderBy("created_at")
+      .execute();
+    expect(crawls.map((c) => c.status)).toEqual(["active", "blocked"]);
+
+    const rows = await testDb.db
+      .selectFrom("store_technologies")
+      .selectAll()
+      .where("store_id", "=", store.id)
+      .execute();
+    expect(rows.filter((r) => r.event_type === "removed")).toEqual([]);
+
+    const active = await StoreTechnologyRepository.getActiveByStore(testDb.db, store.id);
+    expect(active.map((t) => t.name)).toContain("Shopify");
+
+    expect(publisher.published.filter((job) => job.eventType === "removed")).toEqual([]);
   });
 
   it("detects platform, technologies, and homepage text for an active Shopify page, and publishes the technology events", async () => {
