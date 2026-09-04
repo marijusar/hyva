@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { StoreServer } from "@/lib/http/store-server";
 import { DiscoverSearch } from "./discover-search";
 import z from "zod";
@@ -26,15 +25,7 @@ export default async function DiscoverPage(
 ) {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Discover stores</h1>
-        <Link
-          href="/dashboard"
-          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-        >
-          ← Your stores
-        </Link>
-      </div>
+      <h1 className="text-2xl font-semibold">Discover stores</h1>
 
       <DiscoverSearchBar {...props} />
     </div>

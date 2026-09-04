@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { CrawlStatusBadge } from "@/components/store/crawl-status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,10 +15,6 @@ export default async function StoreDetailPage({ params }: PageProps<"/dashboard/
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6">
-      <Link href="/dashboard" className="text-sm text-muted-foreground underline-offset-4 hover:underline">
-        ← Back to stores
-      </Link>
-
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">{store.name ?? store.domain}</h1>
