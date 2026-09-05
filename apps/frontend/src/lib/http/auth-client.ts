@@ -10,8 +10,8 @@ export type LogoutResponse = z.infer<typeof logoutResponseSchema>;
 // own cookie jar via `credentials: "include"` — no manual cookie
 // forwarding needed here, unlike the server-side counterpart.
 export class AuthClient {
-  static async logout(): Promise<HttpResult<LogoutResponse>> {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
+  static async logout(apiUrl: string): Promise<HttpResult<LogoutResponse>> {
+    const res = await fetch(`${apiUrl}/auth/logout`, {
       method: "POST",
       credentials: "include",
     });

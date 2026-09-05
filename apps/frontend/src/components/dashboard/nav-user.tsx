@@ -15,14 +15,16 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { AuthClient } from "@/lib/http/auth-client";
 import type { Me } from "@/lib/http/auth-server";
+import { usePublicEnvVariables } from "@/lib/public-env";
 
 export function NavUser({ user }: { user: Me }) {
   const router = useRouter();
+  const { apiUrl } = usePublicEnvVariables();
   const [loggingOut, setLoggingOut] = useState(false);
 
   async function handleLogout() {
     setLoggingOut(true);
-    await AuthClient.logout();
+    await AuthClient.logout(apiUrl);
     router.push("/login");
   }
 

@@ -5,6 +5,5 @@
 **/.env.*
 !**/.env.example
 apps/frontend/.next
-apps/frontend/src
 apps/backend/test
 apps/backend/README.md

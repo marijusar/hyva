@@ -64,11 +64,15 @@ services:
     command: ["node", "dist/index.js"]
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.backend.entrypoints=web"
-      - "traefik.http.routers.backend.middlewares=backend-auth,backend-allowlist"
-      - "traefik.http.middlewares.backend-auth.basicauth.usersfile=/etc/traefik/htpasswd"
-      - "traefik.http.middlewares.backend-allowlist.ipallowlist.sourcerange=${ALLOWED_IP}/32"
+      - "traefik.http.routers.backend.rule=Host(`${DOMAIN}`) && PathPrefix(`/_api`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=le"
+      # Traefik's default rule-length priority should already favor this
+      # PathPrefix rule over the frontend's plain Host(...) rule, but pin it
+      # explicitly so /_api/* can never fall through to the frontend.
+      - "traefik.http.routers.backend.priority=100"
+      - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/_api"
+      - "traefik.http.routers.backend.middlewares=api-stripprefix"
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
 
   backend-worker-homepage:
@@ -81,6 +85,24 @@ services:
     container_name: sorrel-backend-worker-technology-events
     command: ["node", "dist/workers/technology-event-worker.js"]
 
+  frontend:
+    image: ${FRONTEND_IMAGE:-ghcr.io/marijusar/sorrel-frontend:latest}
+    container_name: sorrel-frontend
+    restart: unless-stopped
+    environment:
+      INTERNAL_API_URL: http://backend:8080
+      API_URL: https://${DOMAIN}/_api
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=le"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+    depends_on:
+      - backend
+    networks:
+      - sorrel-network
+
   traefik:
     image: traefik:v3.3
     container_name: sorrel-traefik
@@ -89,22 +111,29 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.le.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      # htpasswd file, generated on the server with:
-      #   htpasswd -cB traefik/htpasswd <username>
-      # Never committed — path is gitignored.
-      - ./traefik/htpasswd:/etc/traefik/htpasswd:ro
+      - letsencrypt-data:/letsencrypt
     depends_on:
       - backend
+      - frontend
     networks:
       - sorrel-network
 
 volumes:
   postgres-data:
   rabbitmq-data:
+  letsencrypt-data:
 
 networks:
   sorrel-network:
