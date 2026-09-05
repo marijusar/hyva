@@ -41,7 +41,7 @@ class TechnologySync {
   }
 
   private static async listTechnologyFiles(): Promise<string[]> {
-    const res = await fetch(API_BASE, { headers: { "User-Agent": "hyva-sync-technologies" } });
+    const res = await fetch(API_BASE, { headers: { "User-Agent": "sorrel-sync-technologies" } });
     if (!res.ok) throw new Error(`GitHub API request failed: ${res.status} ${res.statusText}`);
 
     const entries = (await res.json()) as { name: string; type: string }[];

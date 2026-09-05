@@ -21,30 +21,30 @@ describe("auth flow", () => {
     const registerRes = await app.request("/auth/register", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: "founder@hyva.dev", password: "correct-horse-battery", name: "Founder" }),
+      body: JSON.stringify({ email: "founder@sorrel.dev", password: "correct-horse-battery", name: "Founder" }),
     });
     expect(registerRes.status).toBe(201);
     const registered = await registerRes.json();
-    expect(registered.email).toBe("founder@hyva.dev");
+    expect(registered.email).toBe("founder@sorrel.dev");
 
     const duplicateRes = await app.request("/auth/register", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: "founder@hyva.dev", password: "another-password" }),
+      body: JSON.stringify({ email: "founder@sorrel.dev", password: "another-password" }),
     });
     expect(duplicateRes.status).toBe(409);
 
     const wrongPasswordRes = await app.request("/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: "founder@hyva.dev", password: "wrong-password" }),
+      body: JSON.stringify({ email: "founder@sorrel.dev", password: "wrong-password" }),
     });
     expect(wrongPasswordRes.status).toBe(401);
 
     const loginRes = await app.request("/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: "founder@hyva.dev", password: "correct-horse-battery" }),
+      body: JSON.stringify({ email: "founder@sorrel.dev", password: "correct-horse-battery" }),
     });
     expect(loginRes.status).toBe(200);
 
@@ -61,7 +61,7 @@ describe("auth flow", () => {
     });
     expect(meRes.status).toBe(200);
     const me = await meRes.json();
-    expect(me.email).toBe("founder@hyva.dev");
+    expect(me.email).toBe("founder@sorrel.dev");
     expect(me.role).toBe("user");
 
     const logoutRes = await app.request("/auth/logout", {
@@ -77,7 +77,7 @@ describe("auth flow", () => {
     const loginRes = await app.request("/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: "refresh@hyva.dev", password: "irrelevant" }),
+      body: JSON.stringify({ email: "refresh@sorrel.dev", password: "irrelevant" }),
     });
     // No user registered yet — expect invalid credentials, not a crash.
     expect(loginRes.status).toBe(401);
@@ -85,12 +85,12 @@ describe("auth flow", () => {
     await app.request("/auth/register", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: "refresh@hyva.dev", password: "correct-horse-battery" }),
+      body: JSON.stringify({ email: "refresh@sorrel.dev", password: "correct-horse-battery" }),
     });
     const realLoginRes = await app.request("/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: "refresh@hyva.dev", password: "correct-horse-battery" }),
+      body: JSON.stringify({ email: "refresh@sorrel.dev", password: "correct-horse-battery" }),
     });
     const refreshCookie = extractCookie(realLoginRes, "refresh_token");
     expect(refreshCookie).toBeDefined();

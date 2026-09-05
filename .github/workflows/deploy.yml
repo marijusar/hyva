@@ -20,7 +20,7 @@ jobs:
           username: ${{ secrets.HETZNER_SSH_USER }}
           key: ${{ secrets.HETZNER_SSH_KEY }}
           source: docker-compose.prod.yml
-          target: /opt/hyva
+          target: /opt/sorrel
           strip_components: 0
 
       - name: Deploy on server
@@ -30,7 +30,7 @@ jobs:
           username: ${{ secrets.HETZNER_SSH_USER }}
           key: ${{ secrets.HETZNER_SSH_KEY }}
           script: |
-            cd /opt/hyva
+            cd /opt/sorrel
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml run --rm backend node dist/db/migrate.js
             docker compose -f docker-compose.prod.yml up -d

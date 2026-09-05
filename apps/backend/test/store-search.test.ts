@@ -27,8 +27,8 @@ describe("store search", () => {
 
   it("400s on missing q", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "search-missing-q@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "search-missing-q@hyva.dev");
+    const cookie = await registerAndLogin(app, "search-missing-q@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "search-missing-q@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
 
     expect((await app.request("/stores/search", { headers: { cookie } })).status).toBe(400);
@@ -36,8 +36,8 @@ describe("store search", () => {
 
   it("matches by domain substring", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "search-domain@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "search-domain@hyva.dev");
+    const cookie = await registerAndLogin(app, "search-domain@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "search-domain@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
     await StoreRepository.create(testDb.db, { domain: "mybiomastore.myshopify.com", name: null });
 
@@ -49,8 +49,8 @@ describe("store search", () => {
 
   it("matches by store name substring", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "search-name@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "search-name@hyva.dev");
+    const cookie = await registerAndLogin(app, "search-name@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "search-name@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
     await StoreRepository.create(testDb.db, { domain: "unrelated.myshopify.com", name: "Bioma Boutique" });
 
@@ -62,8 +62,8 @@ describe("store search", () => {
 
   it("matches by technology name via the catalog, and returns matched_technologies", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "search-tech@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "search-tech@hyva.dev");
+    const cookie = await registerAndLogin(app, "search-tech@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "search-tech@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
     const store = await StoreRepository.create(testDb.db, { domain: "tech-search.myshopify.com", name: null });
     await TechnologyCatalogRepository.upsertMany(testDb.db, [{ name: "Klaviyo", category: "email" }]);
@@ -79,8 +79,8 @@ describe("store search", () => {
 
   it("a technology in the catalog but not active on any store returns no results", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "search-tech-unused@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "search-tech-unused@hyva.dev");
+    const cookie = await registerAndLogin(app, "search-tech-unused@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "search-tech-unused@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
     await TechnologyCatalogRepository.upsertMany(testDb.db, [{ name: "Klaviyo", category: "email" }]);
 
@@ -90,8 +90,8 @@ describe("store search", () => {
 
   it("excludes a store whose only matching technology was removed", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "search-tech-removed@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "search-tech-removed@hyva.dev");
+    const cookie = await registerAndLogin(app, "search-tech-removed@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "search-tech-removed@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
     const store = await StoreRepository.create(testDb.db, { domain: "tech-removed.myshopify.com", name: null });
     await TechnologyCatalogRepository.upsertMany(testDb.db, [{ name: "Klaviyo", category: "email" }]);
@@ -104,8 +104,8 @@ describe("store search", () => {
 
   it("still returns a store when a different technology's later removal doesn't affect the matched one", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "search-distinct-on@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "search-distinct-on@hyva.dev");
+    const cookie = await registerAndLogin(app, "search-distinct-on@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "search-distinct-on@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
     const store = await StoreRepository.create(testDb.db, { domain: "distinct-on.myshopify.com", name: null });
     await TechnologyCatalogRepository.upsertMany(testDb.db, [
@@ -127,8 +127,8 @@ describe("store search", () => {
 
   it("marks a result is_subscribed: true when the caller follows that store", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "search-subscribed@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "search-subscribed@hyva.dev");
+    const cookie = await registerAndLogin(app, "search-subscribed@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "search-subscribed@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
     await StoreRepository.create(testDb.db, { domain: "followed-search.myshopify.com", name: null });
 
@@ -146,8 +146,8 @@ describe("store search", () => {
 
   it("dedupes a store matched by both domain and technology", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "search-dedupe@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "search-dedupe@hyva.dev");
+    const cookie = await registerAndLogin(app, "search-dedupe@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "search-dedupe@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
     const store = await StoreRepository.create(testDb.db, { domain: "klaviyo-shop.myshopify.com", name: null });
     await TechnologyCatalogRepository.upsertMany(testDb.db, [{ name: "Klaviyo", category: "email" }]);

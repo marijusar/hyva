@@ -1,9 +1,9 @@
 ---
 name: backend-development
-description: Conventions for backend work on Hyva (Hono on Node, Kysely/Postgres, RabbitMQ, Python ad-scraper worker). Use when writing or editing routes, DB queries/migrations, queue producers/consumers, or the diff/correlation engines in apps/backend.
+description: Conventions for backend work on Sorrel (Hono on Node, Kysely/Postgres, RabbitMQ). Use when writing or editing routes, DB queries/migrations, queue producers/consumers, or the store crawler/technology-detection engine in apps/backend.
 ---
 
-# Backend development — Hyva
+# Backend development — Sorrel
 
 Full context: [docs/ARCHITECTURE.md](../../../docs/ARCHITECTURE.md).
 
@@ -66,9 +66,6 @@ Full context: [docs/ARCHITECTURE.md](../../../docs/ARCHITECTURE.md).
 - **RabbitMQ** (`amqplib` or `amqp-connection-manager`) — job dispatch only,
   never a data store. Not yet wired into the app; container is running in
   dev compose, no producers/consumers written yet.
-- **Python worker** — Meta Ad Library scraping only. Isolated service,
-  triggered via RabbitMQ, writes results directly to Postgres. Not yet
-  built.
 
 ## Folder structure
 
@@ -142,9 +139,6 @@ sharing state.
 - **REST routes**: resource-based paths (`/stores/:id`, `/subscriptions`),
   standard HTTP verbs/status codes, no RPC-style action endpoints unless
   there's no resource shape that fits.
-- **Cross-service contract**: Python worker and TS backend only communicate
-  via RabbitMQ (job in) and Postgres (result out) — no direct HTTP calls
-  between them, no shared code.
-- **Diff engine output**: every detected change becomes a row in
-  `product_events`, never a mutation-only update — the event log is what
-  subscriptions/alerts and the correlation engine read from.
+- **Technology detection output**: every detected add/remove becomes a row in
+  `store_technologies` (`event_type`), never a mutation-only update — the
+  event log is what the dashboard reads from.

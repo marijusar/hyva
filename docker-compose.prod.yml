@@ -1,9 +1,11 @@
+name: sorrel
+
 x-backend: &backend
-  image: ${BACKEND_IMAGE:-ghcr.io/marijusar/hyva-backend:latest}
+  image: ${BACKEND_IMAGE:-ghcr.io/marijusar/sorrel-backend:latest}
   env_file: .env
   restart: unless-stopped
   networks:
-    - hyva-network
+    - sorrel-network
   depends_on:
     postgres:
       condition: service_healthy
@@ -13,7 +15,7 @@ x-backend: &backend
 services:
   postgres:
     image: postgres:18-alpine
-    container_name: hyva-postgres
+    container_name: sorrel-postgres
     restart: unless-stopped
     env_file: .env
     environment:
@@ -28,15 +30,15 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - hyva-network
+      - sorrel-network
 
   rabbitmq:
     image: rabbitmq:4-management-alpine
-    container_name: hyva-rabbitmq
+    container_name: sorrel-rabbitmq
     # Mnesia writes to /var/lib/rabbitmq/mnesia/rabbit@$HOSTNAME. Without a
     # pinned hostname a recreated container boots a new, empty node and
     # orphans the old directory on the volume, so durable queues look wiped.
-    hostname: hyva-rabbitmq
+    hostname: sorrel-rabbitmq
     restart: unless-stopped
     env_file: .env
     environment:
@@ -54,11 +56,11 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - hyva-network
+      - sorrel-network
 
   backend:
     <<: *backend
-    container_name: hyva-backend
+    container_name: sorrel-backend
     command: ["node", "dist/index.js"]
     labels:
       - "traefik.enable=true"
@@ -71,17 +73,17 @@ services:
 
   backend-worker-homepage:
     <<: *backend
-    container_name: hyva-backend-worker-homepage
+    container_name: sorrel-backend-worker-homepage
     command: ["node", "dist/workers/homepage-worker.js"]
 
   backend-worker-technology-events:
     <<: *backend
-    container_name: hyva-backend-worker-technology-events
+    container_name: sorrel-backend-worker-technology-events
     command: ["node", "dist/workers/technology-event-worker.js"]
 
   traefik:
     image: traefik:v3.3
-    container_name: hyva-traefik
+    container_name: sorrel-traefik
     restart: unless-stopped
     command:
       - "--providers.docker=true"
@@ -98,12 +100,12 @@ services:
     depends_on:
       - backend
     networks:
-      - hyva-network
+      - sorrel-network
 
 volumes:
   postgres-data:
   rabbitmq-data:
 
 networks:
-  hyva-network:
+  sorrel-network:
     driver: bridge

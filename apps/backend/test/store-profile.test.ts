@@ -28,8 +28,8 @@ describe("store profile", () => {
 
   it("404s for a nonexistent store", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "profile-missing@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "profile-missing@hyva.dev");
+    const cookie = await registerAndLogin(app, "profile-missing@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "profile-missing@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
 
     const res = await app.request("/stores/00000000-0000-0000-0000-000000000000", { headers: { cookie } });
@@ -38,8 +38,8 @@ describe("store profile", () => {
 
   it("returns is_subscribed: false for a store the caller does not follow", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "profile-not-following@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "profile-not-following@hyva.dev");
+    const cookie = await registerAndLogin(app, "profile-not-following@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "profile-not-following@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
     const store = await StoreRepository.create(testDb.db, { domain: "not-following.myshopify.com", name: null });
 
@@ -51,8 +51,8 @@ describe("store profile", () => {
 
   it("returns is_subscribed: true once the caller follows the store", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "profile-following@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "profile-following@hyva.dev");
+    const cookie = await registerAndLogin(app, "profile-following@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "profile-following@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
     const store = await StoreRepository.create(testDb.db, { domain: "following.myshopify.com", name: null });
 
@@ -69,8 +69,8 @@ describe("store profile", () => {
 
   it("includes crawl status, metadata, active technologies, and technology history", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "profile-full@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "profile-full@hyva.dev");
+    const cookie = await registerAndLogin(app, "profile-full@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "profile-full@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
     const store = await StoreRepository.create(testDb.db, { domain: "profile-full.myshopify.com", name: null });
     await StoreCrawlRepository.record(testDb.db, store.id, "active");
@@ -93,10 +93,10 @@ describe("store profile", () => {
 
   it("a store the caller doesn't follow still returns full data, not a restricted view", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookieA = await registerAndLogin(app, "profile-owner@hyva.dev");
-    const cookieB = await registerAndLogin(app, "profile-viewer@hyva.dev");
-    const userA = await UserRepository.getByEmail(testDb.db, "profile-owner@hyva.dev");
-    const userB = await UserRepository.getByEmail(testDb.db, "profile-viewer@hyva.dev");
+    const cookieA = await registerAndLogin(app, "profile-owner@sorrel.dev");
+    const cookieB = await registerAndLogin(app, "profile-viewer@sorrel.dev");
+    const userA = await UserRepository.getByEmail(testDb.db, "profile-owner@sorrel.dev");
+    const userB = await UserRepository.getByEmail(testDb.db, "profile-viewer@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, userA!.id);
     await BillingSeeder.activePlan(testDb.db, userB!.id);
     const store = await StoreRepository.create(testDb.db, { domain: "shared-profile.myshopify.com", name: null });

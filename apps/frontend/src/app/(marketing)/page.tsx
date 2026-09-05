@@ -72,7 +72,7 @@ export default function LandingPage() {
             Your next 100 installs are stores that just dropped a competitor.
           </h1>
           <p className="max-w-[620px] text-[17px] leading-7 text-muted-foreground text-pretty sm:text-[19px] sm:leading-[30px]">
-            Hyva watches 500,000 Shopify storefronts and tells you which ones just dropped an app like yours. Email the
+            Sorrel watches 500,000 Shopify storefronts and tells you which ones just dropped an app like yours. Email the
             merchant while the problem is still open.
           </p>
           <div className="flex w-full flex-col items-center gap-3 sm:w-auto">

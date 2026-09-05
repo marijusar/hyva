@@ -33,8 +33,8 @@ describe("store subscriptions", () => {
 
   it("subscribes to a never-seen domain (auto-creates the store), then unsubscribes", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "subscriber@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "subscriber@hyva.dev");
+    const cookie = await registerAndLogin(app, "subscriber@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "subscriber@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
 
     const subscribeRes = await app.request("/subscriptions", {
@@ -66,8 +66,8 @@ describe("store subscriptions", () => {
 
   it("subscribing twice is idempotent", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "twice@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "twice@hyva.dev");
+    const cookie = await registerAndLogin(app, "twice@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "twice@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
 
     await app.request("/subscriptions", {
@@ -87,8 +87,8 @@ describe("store subscriptions", () => {
 
   it("includes crawl status, metadata, and technologies for a subscribed store", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookie = await registerAndLogin(app, "crawled@hyva.dev");
-    const user = await UserRepository.getByEmail(testDb.db, "crawled@hyva.dev");
+    const cookie = await registerAndLogin(app, "crawled@sorrel.dev");
+    const user = await UserRepository.getByEmail(testDb.db, "crawled@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, user!.id);
 
     const store = await StoreRepository.create(testDb.db, { domain: "crawled.myshopify.com", name: null });
@@ -113,10 +113,10 @@ describe("store subscriptions", () => {
 
   it("only returns the requesting user's own subscriptions", async () => {
     const app = AppFactory.create(testDb.db, LoggerFactory.create("test"));
-    const cookieA = await registerAndLogin(app, "user-a@hyva.dev");
-    const cookieB = await registerAndLogin(app, "user-b@hyva.dev");
-    const userA = await UserRepository.getByEmail(testDb.db, "user-a@hyva.dev");
-    const userB = await UserRepository.getByEmail(testDb.db, "user-b@hyva.dev");
+    const cookieA = await registerAndLogin(app, "user-a@sorrel.dev");
+    const cookieB = await registerAndLogin(app, "user-b@sorrel.dev");
+    const userA = await UserRepository.getByEmail(testDb.db, "user-a@sorrel.dev");
+    const userB = await UserRepository.getByEmail(testDb.db, "user-b@sorrel.dev");
     await BillingSeeder.activePlan(testDb.db, userA!.id);
     await BillingSeeder.activePlan(testDb.db, userB!.id);
 
