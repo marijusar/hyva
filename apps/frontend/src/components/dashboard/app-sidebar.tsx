@@ -14,9 +14,8 @@ import type { Me } from "@/lib/http/auth-server";
 export function AppSidebar({ user }: { user: Me }) {
   return (
     <Sidebar>
-      <SidebarHeader className="flex flex-row items-center gap-2 px-4 py-3">
-        <Logo className="h-5 w-auto text-foreground" />
-        <span className="font-[family-name:var(--font-fraunces)] text-lg">Sorrel</span>
+      <SidebarHeader className="flex flex-row items-center px-4 py-3">
+        <Logo aria-label="Sorrel" className="h-7 w-auto text-foreground" />
       </SidebarHeader>
 
       <SidebarContent>
