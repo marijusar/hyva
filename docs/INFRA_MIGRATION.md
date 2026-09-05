@@ -109,8 +109,11 @@ directory is keyed by hostname (`rabbit@$HOSTNAME`), which changes from
 
 ## Not covered here (separate decisions, ask before doing)
 
-- **GitHub repo rename** (`marijusar/hyva` → `marijusar/sorrel`) — cosmetic,
-  GitHub keeps a redirect. Independent of this cutover, do whenever you like.
+- **GitHub repo rename** — already done: `marijusar/hyva` now redirects to
+  `marijusar/sorrel`. Local clones with `origin` still pointing at the old
+  URL keep working via GitHub's redirect, but run
+  `git remote set-url origin git@github.com:marijusar/sorrel.git` to point
+  directly at the new one.
 - **Local working-copy directory rename** (`~/Development/fullstack/hyva` →
   `.../sorrel`) — don't do this without a heads-up: this project's Claude
   memory files are keyed off the current directory path and won't follow
