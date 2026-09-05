@@ -19,7 +19,7 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Hyva",
+  title: "Sorrel",
   description: "Shopify competitor tracking.",
 };
 

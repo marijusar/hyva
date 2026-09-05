@@ -63,5 +63,5 @@ jobs:
           file: apps/backend/Dockerfile
           push: true
           tags: |
-            ghcr.io/marijusar/hyva-backend:latest
-            ghcr.io/marijusar/hyva-backend:${{ github.sha }}
+            ghcr.io/marijusar/sorrel-backend:latest
+            ghcr.io/marijusar/sorrel-backend:${{ github.sha }}

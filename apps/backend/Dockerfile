@@ -1,5 +1,5 @@
 # Build context is the repo root (pnpm workspace) — build with:
-#   docker build -f apps/backend/Dockerfile -t hyva-backend .
+#   docker build -f apps/backend/Dockerfile -t sorrel-backend .
 
 FROM node:26-alpine AS base
 RUN npm install -g pnpm@10.5.2

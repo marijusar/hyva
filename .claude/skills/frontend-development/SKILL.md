@@ -1,9 +1,9 @@
 ---
 name: frontend-development
-description: Conventions for frontend work on Hyva (Next.js App Router, Tailwind, shadcn/ui, light-only theme, cookie-based auth against the Hono backend). Use when building or editing dashboard UI, auth pages, subscription management, alert feed, or any component/page in apps/frontend.
+description: Conventions for frontend work on Sorrel (Next.js App Router, Tailwind, shadcn/ui, light-only theme, cookie-based auth against the Hono backend). Use when building or editing dashboard UI, auth pages, subscription management, alert feed, or any component/page in apps/frontend.
 ---
 
-# Frontend development — Hyva
+# Frontend development — Sorrel
 
 Full context: [docs/ARCHITECTURE.md](../../../docs/ARCHITECTURE.md).
 

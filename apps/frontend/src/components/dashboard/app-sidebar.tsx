@@ -6,6 +6,7 @@ import {
   SidebarGroupContent,
   SidebarHeader,
 } from "@/components/ui/sidebar";
+import { Logo } from "@/components/logo";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 import type { Me } from "@/lib/http/auth-server";
@@ -13,8 +14,8 @@ import type { Me } from "@/lib/http/auth-server";
 export function AppSidebar({ user }: { user: Me }) {
   return (
     <Sidebar>
-      <SidebarHeader className="px-4 py-3">
-        <span className="font-[family-name:var(--font-fraunces)] text-lg">Hyva</span>
+      <SidebarHeader className="flex flex-row items-center px-4 py-3">
+        <Logo aria-label="Sorrel" className="h-7 w-auto text-foreground" />
       </SidebarHeader>
 
       <SidebarContent>
